@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/igormishsky/prometheus-alerts-handler/metrics"
 	"github.com/igormishsky/prometheus-alerts-handler/processors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 )
@@ -28,8 +30,10 @@ func AlertsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	metrics.AlertsReceived.Inc()
 	basicProcessor := &processors.BasicProcessor{}
 	for _, alert := range alerts {
+
 		logrus.Info("Received alert:", alert)
 		basicProcessor.Process(alert)
 	}
