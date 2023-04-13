@@ -2,8 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/igormishsky/prometheus-alerts-handler/processor"
-	"github.com/sirupsen/logrus"
+	"github.com/igormishsky/prometheus-alerts-handler/processors"
 	"io/ioutil"
 	"net/http"
 )
@@ -29,9 +28,10 @@ func AlertsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	basicProcessor := &processors.BasicProcessor{}
 	for _, alert := range alerts {
 		logrus.Info("Received alert:", alert)
-		processor.ProcessAlert(alert)
+		basicProcessor.Process(alert)
 	}
 
 	w.WriteHeader(http.StatusOK)
