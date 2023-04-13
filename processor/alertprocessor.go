@@ -1,8 +1,8 @@
 package processor
 
 import (
+	"github.com/igormishsky/prometheus-alerts-handler/handler"
 	"github.com/sirupsen/logrus"
-	"github.com/yourusername/prometheus-alerts-handler/handler"
 )
 
 func ProcessAlert(alert handler.Alert) {
