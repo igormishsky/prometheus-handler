@@ -2,19 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/igormishsky/prometheus-alerts-handler/processor"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
-	"github.com/igormishsky/prometheus-alerts-handler/processor"
-)
-
-package handler
-
-import (
-"encoding/json"
-"io/ioutil"
-"net/http"
-
-"github.com/sirupsen/logrus"
 )
 
 type Alert struct {
@@ -27,14 +18,14 @@ func AlertsHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		logrus.Error("Error reading request body:", err)
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		respondWithError(w, http.StatusBadRequest, "Error reading request body")
 		return
 	}
 
 	var alerts []Alert
 	if err := json.Unmarshal(body, &alerts); err != nil {
 		logrus.Error("Error unmarshalling request body:", err)
-		http.Error(w, "Error unmarshalling request body", http.StatusBadRequest)
+		respondWithError(w, http.StatusBadRequest, "Error unmarshalling request body")
 		return
 	}
 
@@ -47,3 +38,9 @@ func AlertsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Alerts received"))
 }
 
+func respondWithError(w http.ResponseWriter, statusCode int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	response := map[string]string{"error": message}
+	json.NewEncoder(w).Encode(response)
+}
