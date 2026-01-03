@@ -1,0 +1,54 @@
+# Default configuration for Prometheus Alerts Handler
+# Copy this file and customize for your environment
+
+server:
+  port: 8080
+  metrics_port: 2112
+  log_level: info
+
+processors:
+  # Uncomment and configure the processors you want to use
+
+  # Slack processor
+  # - type: slack
+  #   enabled: true
+  #   name: slack-alerts
+  #   config:
+  #     webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+  #     channel: "#alerts"
+  #     username: "Prometheus Alerts"
+  #     icon_emoji: ":fire:"
+
+  # Email processor
+  # - type: email
+  #   enabled: true
+  #   name: email-alerts
+  #   config:
+  #     smtp_host: "smtp.gmail.com"
+  #     smtp_port: 587
+  #     smtp_user: "your-email@gmail.com"
+  #     smtp_password: "your-app-password"
+  #     from: "alerts@example.com"
+  #     to:
+  #       - "oncall@example.com"
+
+  # PagerDuty processor
+  # - type: pagerduty
+  #   enabled: true
+  #   name: pagerduty
+  #   config:
+  #     integration_key: "YOUR_INTEGRATION_KEY"
+
+  # Webhook processor
+  # - type: webhook
+  #   enabled: true
+  #   name: webhook
+  #   config:
+  #     url: "https://your-webhook.com/alerts"
+  #     method: "POST"
+
+  # Basic processor (logs alerts)
+  - type: basic
+    enabled: true
+    name: basic
+    config: {}

@@ -1,0 +1,55 @@
+# Example configuration with multiple processors
+# Alerts will be sent to all enabled processors concurrently
+
+server:
+  port: 8080
+  metrics_port: 2112
+  log_level: info
+
+processors:
+  # Send critical alerts to Slack
+  - type: slack
+    enabled: true
+    name: slack-notifications
+    config:
+      webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+      channel: "#alerts"
+      username: "Prometheus"
+      icon_emoji: ":rotating_light:"
+
+  # Send all alerts via email
+  - type: email
+    enabled: true
+    name: email-team
+    config:
+      smtp_host: "smtp.gmail.com"
+      smtp_port: 587
+      smtp_user: "alerts@example.com"
+      smtp_password: "your-app-password"
+      from: "prometheus@example.com"
+      to:
+        - "oncall@example.com"
+
+  # Create PagerDuty incidents for critical alerts
+  - type: pagerduty
+    enabled: true
+    name: pagerduty-oncall
+    config:
+      integration_key: "YOUR_INTEGRATION_KEY"
+
+  # Send to custom webhook for processing
+  - type: webhook
+    enabled: true
+    name: custom-processing
+    config:
+      url: "https://internal-api.example.com/alerts"
+      method: "POST"
+      headers:
+        Authorization: "Bearer secret-token"
+        Content-Type: "application/json"
+
+  # Basic processor for logging (fallback)
+  - type: basic
+    enabled: false
+    name: basic-logger
+    config: {}

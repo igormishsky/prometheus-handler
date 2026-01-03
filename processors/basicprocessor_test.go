@@ -3,13 +3,13 @@ package processors_test
 import (
 	"testing"
 
-	"github.com/igormishsky/prometheus-alerts-handler/handler"
 	"github.com/igormishsky/prometheus-alerts-handler/processors"
+	"github.com/igormishsky/prometheus-alerts-handler/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBasicProcessor_Process(t *testing.T) {
-	sampleAlerts := []handler.Alert{
+	sampleAlerts := []types.Alert{
 		{
 			Status: "firing",
 			Labels: map[string]string{

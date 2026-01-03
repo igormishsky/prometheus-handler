@@ -1,0 +1,15 @@
+server:
+  port: 8080
+  metrics_port: 2112
+  log_level: info
+
+processors:
+  - type: webhook
+    enabled: true
+    name: custom-webhook
+    config:
+      url: "https://your-webhook-endpoint.com/alerts"
+      method: "POST"
+      headers:
+        Authorization: "Bearer YOUR_TOKEN"
+        X-Custom-Header: "value"

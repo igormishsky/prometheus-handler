@@ -1,0 +1,37 @@
+# Git files
+.git
+.gitignore
+
+# CI/CD
+.github
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Test files
+*_test.go
+coverage.out
+coverage.html
+
+# Build artifacts
+prometheus-alerts-handler
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Documentation (except examples)
+*.md
+!README.md
+TEST_COVERAGE_ANALYSIS.md
+
+# Temporary files
+*.tmp
+*.log
+
+# Development files
+.DS_Store
+Thumbs.db

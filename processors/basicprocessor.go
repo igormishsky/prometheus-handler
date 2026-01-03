@@ -1,17 +1,17 @@
 package processors
 
 import (
-	"github.com/igormishsky/prometheus-alerts-handler/handler"
+	"github.com/igormishsky/prometheus-alerts-handler/types"
 	"github.com/sirupsen/logrus"
 )
 
 type AlertProcessor interface {
-	Process(alert handler.Alert)
+	Process(alert types.Alert)
 }
 
 type BasicProcessor struct{}
 
-func (bp *BasicProcessor) Process(alert handler.Alert) {
+func (bp *BasicProcessor) Process(alert types.Alert) {
 	logrus.Info("Processing alert:", alert)
 
 	severity, ok := alert.Labels["severity"]
@@ -30,12 +30,12 @@ func (bp *BasicProcessor) Process(alert handler.Alert) {
 	}
 }
 
-func (bp *BasicProcessor) processCriticalAlert(alert handler.Alert) {
+func (bp *BasicProcessor) processCriticalAlert(alert types.Alert) {
 	logrus.Error("Critical alert:", alert)
 	// Implement critical alert handling logic
 }
 
-func (bp *BasicProcessor) processWarningAlert(alert handler.Alert) {
+func (bp *BasicProcessor) processWarningAlert(alert types.Alert) {
 	logrus.Warn("Warning alert:", alert)
 	// Implement warning alert handling logic
 }

@@ -9,6 +9,7 @@ coverage.html
 *.dll
 *.so
 *.dylib
+prometheus-alerts-handler
 
 # Test binaries
 *.test
@@ -22,3 +23,11 @@ go.work
 *.swp
 *.swo
 *~
+
+# Config files with secrets (keep example files)
+!config.yaml.example
+!examples/*.yaml
+
+# Temporary files
+*.tmp
+*.log

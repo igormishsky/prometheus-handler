@@ -1,0 +1,12 @@
+server:
+  port: 8080
+  metrics_port: 2112
+  log_level: info
+
+processors:
+  - type: pagerduty
+    enabled: true
+    name: pagerduty-incidents
+    config:
+      integration_key: "YOUR_PAGERDUTY_INTEGRATION_KEY"
+      api_endpoint: "https://events.pagerduty.com/v2/enqueue"
