@@ -142,7 +142,7 @@ func main() {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"healthy"}`))
+	_, _ = w.Write([]byte(`{"status":"healthy"}`))
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +197,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 </body>
 </html>
 	`
-	w.Write([]byte(html))
+	_, _ = w.Write([]byte(html))
 }
 
 func getDefaultConfig() *config.Config {

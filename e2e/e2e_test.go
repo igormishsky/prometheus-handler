@@ -101,11 +101,11 @@ func cleanup() {
 		cancelFn()
 	}
 	if serverCmd != nil && serverCmd.Process != nil {
-		serverCmd.Process.Kill()
-		serverCmd.Wait()
+		_ = serverCmd.Process.Kill()
+		_ = serverCmd.Wait()
 	}
-	os.Remove("../prometheus-alerts-handler-test")
-	os.Remove("../test-config.yaml")
+	_ = os.Remove("../prometheus-alerts-handler-test")
+	_ = os.Remove("../test-config.yaml")
 }
 
 func waitForHealthy(timeout time.Duration) bool {
@@ -115,11 +115,11 @@ func waitForHealthy(timeout time.Duration) bool {
 	for time.Now().Before(deadline) {
 		resp, err := client.Get(serverURL + "/health")
 		if err == nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return true
 		}
 		if resp != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -131,7 +131,7 @@ func TestE2E_HealthEndpoint(t *testing.T) {
 
 	resp, err := client.Get(serverURL + "/health")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -146,7 +146,7 @@ func TestE2E_RootEndpoint(t *testing.T) {
 
 	resp, err := client.Get(serverURL + "/")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "text/html")
@@ -161,7 +161,7 @@ func TestE2E_MetricsEndpoint(t *testing.T) {
 
 	resp, err := client.Get(metricsURL + "/metrics")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -198,7 +198,7 @@ func TestE2E_AlertsEndpoint_SimpleFormat(t *testing.T) {
 
 	resp, err := client.Post(serverURL+"/alerts", "application/json", bytes.NewBuffer(payload))
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -261,7 +261,7 @@ func TestE2E_AlertsEndpoint_AlertManagerFormat(t *testing.T) {
 
 	resp, err := client.Post(serverURL+"/alerts", "application/json", bytes.NewBuffer(payload))
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -321,7 +321,7 @@ func TestE2E_AlertsEndpoint_ErrorCases(t *testing.T) {
 
 			resp, err := client.Do(req)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
 		})
@@ -335,7 +335,7 @@ func TestE2E_MetricsIncrement(t *testing.T) {
 	resp, err := client.Get(metricsURL + "/metrics")
 	require.NoError(t, err)
 	initialBody, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	// Send an alert
 	alerts := []types.Alert{
@@ -356,7 +356,7 @@ func TestE2E_MetricsIncrement(t *testing.T) {
 
 	resp, err = client.Post(serverURL+"/alerts", "application/json", bytes.NewBuffer(payload))
 	require.NoError(t, err)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	// Wait a bit for metrics to update
 	time.Sleep(100 * time.Millisecond)
@@ -365,7 +365,7 @@ func TestE2E_MetricsIncrement(t *testing.T) {
 	resp, err = client.Get(metricsURL + "/metrics")
 	require.NoError(t, err)
 	updatedBody, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	// Verify metrics changed
 	assert.NotEqual(t, string(initialBody), string(updatedBody))
@@ -401,7 +401,7 @@ func TestE2E_ConcurrentRequests(t *testing.T) {
 				errors <- fmt.Errorf("request %d failed: %w", id, err)
 				return
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			if resp.StatusCode != http.StatusOK {
 				errors <- fmt.Errorf("request %d returned status %d", id, resp.StatusCode)
@@ -441,7 +441,7 @@ func TestE2E_ResolvedAlerts(t *testing.T) {
 
 	resp, err := client.Post(serverURL+"/alerts", "application/json", bytes.NewBuffer(payload))
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 

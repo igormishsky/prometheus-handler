@@ -158,7 +158,7 @@ func (sp *SlackProcessor) sendToSlack(message SlackMessage) error {
 	if err != nil {
 		return fmt.Errorf("failed to send request to Slack: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("slack returned non-OK status: %d", resp.StatusCode)
