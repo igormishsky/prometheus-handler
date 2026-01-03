@@ -237,13 +237,60 @@ The handler exposes the following Prometheus metrics on the metrics port (defaul
 ### Running Tests
 
 ```bash
-go test ./... -v
+# Run all tests
+make test
+
+# Run specific test suites
+make test-unit           # Unit tests
+make test-integration    # Integration tests
+make test-e2e           # End-to-end tests
+
+# Generate coverage report
+make coverage
 ```
+
+See [TESTING.md](TESTING.md) for comprehensive testing guide.
 
 ### Building
 
 ```bash
+# Build for current platform
+make build
+
+# Build for all platforms
+make build-all
+
+# Or with go directly
 go build -o prometheus-alerts-handler
+```
+
+### Local Development
+
+```bash
+# Run with hot reload
+make run-dev
+
+# Run linters
+make lint
+
+# Format code
+make fmt
+
+# Full CI pipeline locally
+make ci
+```
+
+### Docker Development
+
+```bash
+# Start full environment (Prometheus + Alertmanager + Handler)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f alerts-handler
+
+# Stop environment
+docker-compose down
 ```
 
 ### Adding Custom Processors
