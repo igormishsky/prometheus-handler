@@ -21,12 +21,12 @@ type PagerDutyProcessor struct {
 
 // PagerDutyEvent represents a PagerDuty Events API v2 event
 type PagerDutyEvent struct {
-	RoutingKey  string                 `json:"routing_key"`
-	EventAction string                 `json:"event_action"`
-	DedupKey    string                 `json:"dedup_key,omitempty"`
-	Payload     PagerDutyPayload       `json:"payload"`
-	Links       []PagerDutyLink        `json:"links,omitempty"`
-	Images      []PagerDutyImage       `json:"images,omitempty"`
+	RoutingKey  string           `json:"routing_key"`
+	EventAction string           `json:"event_action"`
+	DedupKey    string           `json:"dedup_key,omitempty"`
+	Payload     PagerDutyPayload `json:"payload"`
+	Links       []PagerDutyLink  `json:"links,omitempty"`
+	Images      []PagerDutyImage `json:"images,omitempty"`
 }
 
 // PagerDutyPayload represents the payload of a PagerDuty event

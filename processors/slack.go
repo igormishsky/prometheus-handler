@@ -23,22 +23,22 @@ type SlackProcessor struct {
 
 // SlackMessage represents a Slack message payload
 type SlackMessage struct {
-	Text      string       `json:"text,omitempty"`
-	Channel   string       `json:"channel,omitempty"`
-	Username  string       `json:"username,omitempty"`
-	IconEmoji string       `json:"icon_emoji,omitempty"`
+	Text        string            `json:"text,omitempty"`
+	Channel     string            `json:"channel,omitempty"`
+	Username    string            `json:"username,omitempty"`
+	IconEmoji   string            `json:"icon_emoji,omitempty"`
 	Attachments []SlackAttachment `json:"attachments,omitempty"`
 }
 
 // SlackAttachment represents a Slack message attachment
 type SlackAttachment struct {
-	Color      string                   `json:"color,omitempty"`
-	Title      string                   `json:"title,omitempty"`
-	Text       string                   `json:"text,omitempty"`
-	Fields     []SlackAttachmentField   `json:"fields,omitempty"`
-	Footer     string                   `json:"footer,omitempty"`
-	FooterIcon string                   `json:"footer_icon,omitempty"`
-	Timestamp  int64                    `json:"ts,omitempty"`
+	Color      string                 `json:"color,omitempty"`
+	Title      string                 `json:"title,omitempty"`
+	Text       string                 `json:"text,omitempty"`
+	Fields     []SlackAttachmentField `json:"fields,omitempty"`
+	Footer     string                 `json:"footer,omitempty"`
+	FooterIcon string                 `json:"footer_icon,omitempty"`
+	Timestamp  int64                  `json:"ts,omitempty"`
 }
 
 // SlackAttachmentField represents a field in a Slack attachment
@@ -130,13 +130,13 @@ func (sp *SlackProcessor) buildSlackMessage(alert types.Alert) SlackMessage {
 	}
 
 	attachment := SlackAttachment{
-		Color:     color,
-		Title:     title,
-		Text:      description,
-		Fields:    fields,
-		Footer:    "Prometheus Alerts Handler",
+		Color:      color,
+		Title:      title,
+		Text:       description,
+		Fields:     fields,
+		Footer:     "Prometheus Alerts Handler",
 		FooterIcon: "https://prometheus.io/assets/favicons/android-chrome-192x192.png",
-		Timestamp: time.Now().Unix(),
+		Timestamp:  time.Now().Unix(),
 	}
 
 	return SlackMessage{

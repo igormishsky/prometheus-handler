@@ -2,13 +2,13 @@ package types
 
 // Alert represents a Prometheus alert
 type Alert struct {
-	Status      string            `json:"status"`
-	Labels      map[string]string `json:"labels"`
-	Annotations map[string]string `json:"annotations"`
-	StartsAt    string            `json:"startsAt,omitempty"`
-	EndsAt      string            `json:"endsAt,omitempty"`
-	GeneratorURL string           `json:"generatorURL,omitempty"`
-	Fingerprint string            `json:"fingerprint,omitempty"`
+	Status       string            `json:"status"`
+	Labels       map[string]string `json:"labels"`
+	Annotations  map[string]string `json:"annotations"`
+	StartsAt     string            `json:"startsAt,omitempty"`
+	EndsAt       string            `json:"endsAt,omitempty"`
+	GeneratorURL string            `json:"generatorURL,omitempty"`
+	Fingerprint  string            `json:"fingerprint,omitempty"`
 }
 
 // AlertMessage represents the webhook message from Alertmanager

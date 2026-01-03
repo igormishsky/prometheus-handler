@@ -145,10 +145,10 @@ func TestProcessorFactory_Integration(t *testing.T) {
 	factory := processors.NewFactory()
 
 	tests := []struct {
-		name        string
+		name          string
 		processorType string
-		config      map[string]interface{}
-		expectError bool
+		config        map[string]interface{}
+		expectError   bool
 	}{
 		{
 			name:          "Create Basic Processor",
