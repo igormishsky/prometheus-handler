@@ -79,7 +79,9 @@ class PredictionEngine {
         val nextPeriodStart = currentCycleStartDate.plusDays(predictedCycleLength.roundToInt().toLong())
 
         val userLutealEstimate = if (n >= 3) {
-            val est = individualMean - (individualMean - prior.lutealMean)
+            // Estimate luteal phase as predicted cycle length minus estimated follicular phase
+            val estimatedFollicular = individualMean - prior.lutealMean
+            val est = predictedCycleLength - estimatedFollicular
             est.coerceIn(7.0, 17.0)
         } else {
             prior.lutealMean

@@ -97,6 +97,20 @@ class AnalysisViewModel @Inject constructor(
     }
 
     private fun calculateStreak(cycles: List<com.cyclesync.domain.entity.Cycle>): Int {
-        return cycles.sortedByDescending { it.startDate }.size
+        if (cycles.isEmpty()) return 0
+        val sorted = cycles.sortedByDescending { it.startDate }
+        var streak = 1
+        for (i in 0 until sorted.size - 1) {
+            val current = sorted[i]
+            val next = sorted[i + 1]
+            // Consider cycles consecutive if they are within 45 days of each other
+            val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(next.startDate, current.startDate)
+            if (daysBetween <= 45) {
+                streak++
+            } else {
+                break
+            }
+        }
+        return streak
     }
 }
