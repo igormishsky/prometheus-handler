@@ -8,6 +8,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.cyclesync.ui.demo.DemoScreen
+import com.cyclesync.ui.login.LoginScreen
+import com.cyclesync.ui.login.LoginViewModel
 import com.cyclesync.ui.navigation.Screen
 import com.cyclesync.ui.onboarding.OnboardingScreen
 import com.cyclesync.ui.onboarding.OnboardingViewModel
@@ -20,7 +23,14 @@ fun CycleSyncNavHost(
     val onboardingViewModel: OnboardingViewModel = hiltViewModel()
     val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState()
 
-    val startDestination = if (isOnboardingCompleted) Screen.Main.route else Screen.Onboarding.route
+    val loginViewModel: LoginViewModel = hiltViewModel()
+    val hasPinSet by loginViewModel.hasPinSet.collectAsState()
+
+    val startDestination = when {
+        !isOnboardingCompleted -> Screen.Onboarding.route
+        hasPinSet -> Screen.Login.route
+        else -> Screen.Demo.route
+    }
 
     NavHost(
         navController = navController,
@@ -29,8 +39,35 @@ fun CycleSyncNavHost(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onComplete = {
-                    navController.navigate(Screen.Main.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Login.route) {
+            val isSetup = !hasPinSet
+            LoginScreen(
+                isSetup = isSetup,
+                onAuthenticated = {
+                    navController.navigate(Screen.Demo.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onSkip = {
+                    navController.navigate(Screen.Demo.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Demo.route) {
+            DemoScreen(
+                onContinue = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Demo.route) { inclusive = true }
                     }
                 }
             )

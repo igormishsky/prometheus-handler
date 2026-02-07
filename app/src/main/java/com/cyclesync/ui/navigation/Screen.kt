@@ -2,6 +2,8 @@ package com.cyclesync.ui.navigation
 
 sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding")
+    data object Login : Screen("login")
+    data object Demo : Screen("demo")
     data object Main : Screen("main")
     data object Settings : Screen("settings")
     data object Tracking : Screen("tracking/{date}") {
