@@ -14,6 +14,7 @@ import com.cyclesync.data.repository.CycleRepositoryImpl
 import com.cyclesync.data.repository.DailyLogRepositoryImpl
 import com.cyclesync.data.repository.PredictionRepositoryImpl
 import com.cyclesync.data.repository.SettingsRepositoryImpl
+import com.cyclesync.core.notifications.ReminderManager
 import com.cyclesync.domain.prediction.PredictionEngine
 import com.cyclesync.domain.repository.CycleRepository
 import com.cyclesync.domain.repository.DailyLogRepository
@@ -76,4 +77,8 @@ object AppModule {
     @Provides
     @Singleton
     fun providePredictionEngine(): PredictionEngine = PredictionEngine()
+
+    @Provides
+    @Singleton
+    fun provideReminderManager(): ReminderManager = ReminderManager()
 }

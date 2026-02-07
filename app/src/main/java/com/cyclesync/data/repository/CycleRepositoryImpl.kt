@@ -4,6 +4,7 @@ import com.cyclesync.core.database.dao.CycleDao
 import com.cyclesync.core.database.entity.CycleEntity
 import com.cyclesync.core.utils.DateUtils
 import com.cyclesync.domain.entity.Cycle
+import com.cyclesync.domain.entity.SkipReason
 import com.cyclesync.domain.repository.CycleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -74,7 +75,10 @@ class CycleRepositoryImpl @Inject constructor(
         cycleLength = cycleLength,
         periodLength = periodLength,
         isExcluded = isExcluded,
-        notes = notes
+        notes = notes,
+        skipReason = skipReason?.let {
+            try { SkipReason.valueOf(it) } catch (_: Exception) { null }
+        }
     )
 
     private fun Cycle.toEntity(): CycleEntity = CycleEntity(
@@ -88,6 +92,7 @@ class CycleRepositoryImpl @Inject constructor(
         periodLength = periodLength,
         isExcluded = isExcluded,
         notes = notes,
+        skipReason = skipReason?.name,
         createdAt = DateUtils.toIsoString(LocalDate.now()),
         updatedAt = DateUtils.toIsoString(LocalDate.now())
     )
