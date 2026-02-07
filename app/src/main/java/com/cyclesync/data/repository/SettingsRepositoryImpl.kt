@@ -38,39 +38,42 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private fun SettingsEntity.toDomain(): Settings = Settings(
         id = id,
-        activeMode = try { AppMode.valueOf(activeMode.uppercase()) } catch (_: Exception) { AppMode.PERIOD_TRACKING },
+        activeMode = AppMode.fromNameOrNull(activeMode) ?: AppMode.PERIOD_TRACKING,
         birthYear = birthYear,
-        bmiCategory = bmiCategory?.let { try { BmiCategory.valueOf(it.uppercase()) } catch (_: Exception) { null } },
-        typicalCycleLength = typicalCycleLength,
-        typicalPeriodLength = typicalPeriodLength,
+        bmiCategory = BmiCategory.fromNameOrNull(bmiCategory),
+        typicalCycleLength = typicalCycleLength.coerceIn(15, 60),
+        typicalPeriodLength = typicalPeriodLength.coerceIn(1, 15),
         pinHash = pinHash,
         appIcon = appIcon,
-        theme = try { AppTheme.valueOf(theme.uppercase()) } catch (_: Exception) { AppTheme.SYSTEM },
+        theme = AppTheme.fromNameOrNull(theme) ?: AppTheme.SYSTEM,
         unitsWeight = unitsWeight,
         unitsTemp = unitsTemp,
-        firstLaunchDate = if (firstLaunchDate.isNotEmpty()) DateUtils.fromIsoString(firstLaunchDate) else LocalDate.now(),
-        lastBackupDate = lastBackupDate?.let { if (it.isNotEmpty()) DateUtils.fromIsoString(it) else null },
+        firstLaunchDate = DateUtils.fromIsoStringOrNull(firstLaunchDate) ?: LocalDate.now(),
+        lastBackupDate = DateUtils.fromIsoStringOrNull(lastBackupDate),
         onboardingCompleted = onboardingCompleted,
-        notificationPrivacy = try { NotificationPrivacy.valueOf(notificationPrivacy.uppercase()) } catch (_: Exception) { NotificationPrivacy.HIGH }
+        notificationPrivacy = NotificationPrivacy.fromNameOrNull(notificationPrivacy) ?: NotificationPrivacy.HIGH
     )
 
-    private fun Settings.toEntity(): SettingsEntity = SettingsEntity(
-        id = id,
-        activeMode = activeMode.name.lowercase(),
-        birthYear = birthYear,
-        bmiCategory = bmiCategory?.name?.lowercase(),
-        typicalCycleLength = typicalCycleLength,
-        typicalPeriodLength = typicalPeriodLength,
-        pinHash = pinHash,
-        appIcon = appIcon,
-        theme = theme.name.lowercase(),
-        unitsWeight = unitsWeight,
-        unitsTemp = unitsTemp,
-        firstLaunchDate = DateUtils.toIsoString(firstLaunchDate),
-        lastBackupDate = lastBackupDate?.let { DateUtils.toIsoString(it) },
-        onboardingCompleted = onboardingCompleted,
-        notificationPrivacy = notificationPrivacy.name.lowercase(),
-        createdAt = DateUtils.toIsoString(LocalDate.now()),
-        updatedAt = DateUtils.toIsoString(LocalDate.now())
-    )
+    private fun Settings.toEntity(): SettingsEntity {
+        val now = DateUtils.toIsoString(LocalDate.now())
+        return SettingsEntity(
+            id = id,
+            activeMode = activeMode.name.lowercase(),
+            birthYear = birthYear,
+            bmiCategory = bmiCategory?.name?.lowercase(),
+            typicalCycleLength = typicalCycleLength,
+            typicalPeriodLength = typicalPeriodLength,
+            pinHash = pinHash,
+            appIcon = appIcon,
+            theme = theme.name.lowercase(),
+            unitsWeight = unitsWeight,
+            unitsTemp = unitsTemp,
+            firstLaunchDate = DateUtils.toIsoString(firstLaunchDate),
+            lastBackupDate = lastBackupDate?.let { DateUtils.toIsoString(it) },
+            onboardingCompleted = onboardingCompleted,
+            notificationPrivacy = notificationPrivacy.name.lowercase(),
+            createdAt = now,
+            updatedAt = now
+        )
+    }
 }

@@ -33,7 +33,9 @@ data class TrackingState(
     val isIrregular: Boolean = false,
     val skipReason: SkipReason? = null,
     val isLoading: Boolean = true,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val isSaving: Boolean = false,
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -56,33 +58,32 @@ class TrackingViewModel @Inject constructor(
 
     private fun loadExistingLog() {
         viewModelScope.launch {
-            val date = DateUtils.fromIsoString(dateStr)
-            val existingLog = dailyLogRepository.getByDate(date)
-            val currentCycle = cycleRepository.getCurrentCycle()
-            val isPeriod = currentCycle?.let { cycle ->
-                val periodEnd = cycle.periodEndDate ?: cycle.periodStartDate.plusDays(
-                    (cycle.periodLength ?: 5).toLong() - 1
+            try {
+                val date = DateUtils.fromIsoString(dateStr)
+                val existingLog = dailyLogRepository.getByDate(date)
+                val currentCycle = cycleRepository.getCurrentCycle()
+                val isPeriod = currentCycle?.isDateInPeriod(date) ?: false
+
+                val flow = existingLog?.entries?.find {
+                    it.category == TrackingCategory.BLEEDING && it.subcategory.startsWith("flow_")
+                }?.subcategory?.removePrefix("flow_")
+
+                val entriesMap = mutableMapOf<String, TrackingEntry>()
+                existingLog?.entries?.forEach { entry ->
+                    entriesMap[entry.key] = entry
+                }
+
+                _state.value = _state.value.copy(
+                    existingLog = existingLog,
+                    isPeriodDay = isPeriod,
+                    flowIntensity = flow,
+                    notes = existingLog?.notes ?: "",
+                    entries = entriesMap,
+                    isLoading = false
                 )
-                !date.isBefore(cycle.periodStartDate) && !date.isAfter(periodEnd)
-            } ?: false
-
-            val flow = existingLog?.entries?.find {
-                it.category == TrackingCategory.BLEEDING && it.subcategory.startsWith("flow_")
-            }?.subcategory?.removePrefix("flow_")
-
-            val entriesMap = mutableMapOf<String, TrackingEntry>()
-            existingLog?.entries?.forEach { entry ->
-                entriesMap["${entry.category.name}_${entry.subcategory}"] = entry
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(isLoading = false, error = "Failed to load tracking data")
             }
-
-            _state.value = _state.value.copy(
-                existingLog = existingLog,
-                isPeriodDay = isPeriod,
-                flowIntensity = flow,
-                notes = existingLog?.notes ?: "",
-                entries = entriesMap,
-                isLoading = false
-            )
         }
     }
 
@@ -129,78 +130,82 @@ class TrackingViewModel @Inject constructor(
         _state.value = _state.value.copy(skipReason = reason)
     }
 
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
+    }
+
     fun save() {
+        if (_state.value.isSaving) return
+
         viewModelScope.launch {
-            val date = _state.value.date
-            val logId = _state.value.existingLog?.id ?: UuidGenerator.generate()
-            val currentCycle = cycleRepository.getCurrentCycle()
+            _state.value = _state.value.copy(isSaving = true, error = null)
+            try {
+                val date = _state.value.date
+                val logId = _state.value.existingLog?.id ?: UuidGenerator.generate()
+                val currentCycle = cycleRepository.getCurrentCycle()
 
-            // Handle period start/end
-            if (_state.value.isPeriodDay && currentCycle == null) {
-                // Start new cycle
-                val cycleNum = cycleRepository.getCycleCount() + 1
-                val previousCycle = cycleRepository.getLastCycle()
+                if (_state.value.isPeriodDay && currentCycle == null) {
+                    val cycleNum = cycleRepository.getCycleCount() + 1
+                    val previousCycle = cycleRepository.getLastCycle()
 
-                // Close previous cycle
-                previousCycle?.let { prev ->
-                    cycleRepository.updateCycle(
-                        prev.copy(
-                            endDate = date.minusDays(1),
-                            cycleLength = DateUtils.daysBetween(prev.startDate, date).toInt()
+                    previousCycle?.let { prev ->
+                        cycleRepository.updateCycle(
+                            prev.copy(
+                                endDate = date.minusDays(1),
+                                cycleLength = DateUtils.daysBetween(prev.startDate, date).toInt()
+                            )
+                        )
+                    }
+
+                    val newCycle = Cycle(
+                        id = UuidGenerator.generate(),
+                        cycleNumber = cycleNum,
+                        startDate = date,
+                        periodStartDate = date,
+                        isExcluded = _state.value.isIrregular,
+                        skipReason = _state.value.skipReason
+                    )
+                    cycleRepository.insertCycle(newCycle)
+                    regeneratePredictions()
+                }
+
+                val entries = _state.value.entries.values.map { entry ->
+                    entry.copy(dailyLogId = logId)
+                }.toMutableList()
+
+                if (_state.value.isPeriodDay && _state.value.flowIntensity != null) {
+                    entries.add(
+                        TrackingEntry(
+                            id = UuidGenerator.generate(),
+                            dailyLogId = logId,
+                            category = TrackingCategory.BLEEDING,
+                            subcategory = "flow_${_state.value.flowIntensity}"
                         )
                     )
                 }
 
-                val newCycle = Cycle(
-                    id = UuidGenerator.generate(),
-                    cycleNumber = cycleNum,
-                    startDate = date,
-                    periodStartDate = date,
-                    isExcluded = _state.value.isIrregular,
-                    skipReason = _state.value.skipReason
+                val log = DailyLog(
+                    id = logId,
+                    date = date,
+                    cycleId = currentCycle?.id ?: cycleRepository.getCurrentCycle()?.id,
+                    notes = _state.value.notes.takeIf { it.isNotBlank() }
                 )
-                cycleRepository.insertCycle(newCycle)
 
-                // Regenerate predictions
-                regeneratePredictions()
+                dailyLogRepository.insertOrUpdate(log)
+                dailyLogRepository.saveTrackingEntries(logId, entries)
+
+                _state.value = _state.value.copy(isSaved = true, isSaving = false)
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(isSaving = false, error = "Failed to save tracking data")
             }
-
-            // Build entries list
-            val entries = _state.value.entries.values.map { entry ->
-                entry.copy(dailyLogId = logId)
-            }.toMutableList()
-
-            // Add flow entry if period day
-            if (_state.value.isPeriodDay && _state.value.flowIntensity != null) {
-                entries.add(
-                    TrackingEntry(
-                        id = UuidGenerator.generate(),
-                        dailyLogId = logId,
-                        category = TrackingCategory.BLEEDING,
-                        subcategory = "flow_${_state.value.flowIntensity}"
-                    )
-                )
-            }
-
-            val log = DailyLog(
-                id = logId,
-                date = date,
-                cycleId = currentCycle?.id ?: cycleRepository.getCurrentCycle()?.id,
-                notes = _state.value.notes.takeIf { it.isNotBlank() }
-            )
-
-            dailyLogRepository.insertOrUpdate(log)
-            dailyLogRepository.saveTrackingEntries(logId, entries)
-
-            _state.value = _state.value.copy(isSaved = true)
         }
     }
 
     private suspend fun regeneratePredictions() {
         val settings = settingsRepository.getSettingsOnce()
         val cycles = cycleRepository.getAllCyclesOnce()
-        val age = settings?.birthYear?.let { LocalDate.now().year - it }
-        val bmi = settings?.bmiCategory?.name?.lowercase()
+        val age = settings?.currentAge
+        val bmi = settings?.bmiCategoryName
 
         val predictions = predictionEngine.generatePredictions(cycles, age, bmi)
         predictionRepository.savePredictions(predictions)

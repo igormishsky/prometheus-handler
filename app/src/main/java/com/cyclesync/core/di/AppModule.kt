@@ -1,6 +1,8 @@
 package com.cyclesync.core.di
 
 import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import androidx.room.Room
 import com.cyclesync.core.database.CycleSyncDatabase
 import com.cyclesync.core.database.dao.AlgorithmStateDao
@@ -27,35 +29,96 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
+import java.security.KeyStore
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    private const val KEYSTORE_ALIAS = "cyclesync_db_key"
+    private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+    private const val DB_NAME = "cyclesync.db"
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): CycleSyncDatabase {
-        val passphrase = SQLiteDatabase.getBytes("cyclesync-secure-key".toCharArray())
+        val passphrase = getOrCreateDatabaseKey()
         val factory = SupportFactory(passphrase)
 
         return Room.databaseBuilder(
             context,
             CycleSyncDatabase::class.java,
-            "cyclesync.db"
+            DB_NAME
         )
             .openHelperFactory(factory)
             .fallbackToDestructiveMigration()
             .build()
     }
 
-    @Provides fun provideSettingsDao(db: CycleSyncDatabase): SettingsDao = db.settingsDao()
-    @Provides fun provideCycleDao(db: CycleSyncDatabase): CycleDao = db.cycleDao()
-    @Provides fun provideDailyLogDao(db: CycleSyncDatabase): DailyLogDao = db.dailyLogDao()
-    @Provides fun provideTrackingEntryDao(db: CycleSyncDatabase): TrackingEntryDao = db.trackingEntryDao()
-    @Provides fun providePredictionDao(db: CycleSyncDatabase): PredictionDao = db.predictionDao()
-    @Provides fun provideTemperatureLogDao(db: CycleSyncDatabase): TemperatureLogDao = db.temperatureLogDao()
-    @Provides fun provideAlgorithmStateDao(db: CycleSyncDatabase): AlgorithmStateDao = db.algorithmStateDao()
+    private fun getOrCreateDatabaseKey(): ByteArray {
+        return try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            keyStore.load(null)
+
+            if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
+                val keyGenerator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES,
+                    ANDROID_KEYSTORE
+                )
+                keyGenerator.init(
+                    KeyGenParameterSpec.Builder(
+                        KEYSTORE_ALIAS,
+                        KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                    )
+                        .setKeySize(256)
+                        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                        .build()
+                )
+                keyGenerator.generateKey()
+            }
+
+            val key = keyStore.getKey(KEYSTORE_ALIAS, null) as SecretKey
+            val encoded = key.encoded
+            if (encoded != null && encoded.isNotEmpty()) {
+                SQLiteDatabase.getBytes(
+                    CharArray(minOf(encoded.size, 32)) { encoded[it].toInt().toChar() }
+                )
+            } else {
+                getFallbackKey()
+            }
+        } catch (_: Exception) {
+            getFallbackKey()
+        }
+    }
+
+    private fun getFallbackKey(): ByteArray {
+        return SQLiteDatabase.getBytes("cyclesync-secure-key-v2".toCharArray())
+    }
+
+    @Provides
+    fun provideSettingsDao(db: CycleSyncDatabase): SettingsDao = db.settingsDao()
+
+    @Provides
+    fun provideCycleDao(db: CycleSyncDatabase): CycleDao = db.cycleDao()
+
+    @Provides
+    fun provideDailyLogDao(db: CycleSyncDatabase): DailyLogDao = db.dailyLogDao()
+
+    @Provides
+    fun provideTrackingEntryDao(db: CycleSyncDatabase): TrackingEntryDao = db.trackingEntryDao()
+
+    @Provides
+    fun providePredictionDao(db: CycleSyncDatabase): PredictionDao = db.predictionDao()
+
+    @Provides
+    fun provideTemperatureLogDao(db: CycleSyncDatabase): TemperatureLogDao = db.temperatureLogDao()
+
+    @Provides
+    fun provideAlgorithmStateDao(db: CycleSyncDatabase): AlgorithmStateDao = db.algorithmStateDao()
 
     @Provides
     @Singleton

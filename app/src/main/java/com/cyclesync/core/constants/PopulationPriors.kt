@@ -5,7 +5,10 @@ data class CyclePrior(
     val cycleSD: Double,
     val follicularMean: Double,
     val lutealMean: Double
-)
+) {
+    val cycleVariance: Double
+        get() = cycleSD * cycleSD
+}
 
 object PopulationPriors {
     // Mean cycle length in days by age group (Bull 2019, 612K cycles)
@@ -46,10 +49,12 @@ object PopulationPriors {
     // Fertile window (Wilcox 2000, NEJM)
     const val FERTILE_WINDOW_START_BEFORE_OVULATION = 5
     const val FERTILE_WINDOW_END_AFTER_OVULATION = 1
+    const val FERTILE_WINDOW_TOTAL_DAYS = FERTILE_WINDOW_START_BEFORE_OVULATION + FERTILE_WINDOW_END_AFTER_OVULATION + 1
 
     // PMS window (ACOG guidelines)
     const val PMS_WINDOW_START_BEFORE_PERIOD = 7
     const val PMS_WINDOW_END_BEFORE_PERIOD = 1
+    const val PMS_WINDOW_TOTAL_DAYS = PMS_WINDOW_START_BEFORE_PERIOD - PMS_WINDOW_END_BEFORE_PERIOD
 
     // Per-day conception probability (Wilcox 2000)
     val conceptionProbabilityByDay = mapOf(
@@ -83,8 +88,8 @@ object PopulationPriors {
             CyclePrior(POPULATION_MEAN_CYCLE, POPULATION_SD_CYCLE, POPULATION_MEAN_FOLLICULAR, POPULATION_MEAN_LUTEAL)
         }
 
-        val bmiAdj = bmiCycleAdjustment[bmiCategory] ?: 0.0
-        val bmiVar = bmiVarianceMultiplier[bmiCategory] ?: 1.0
+        val bmiAdj = bmiCycleAdjustment[bmiCategory?.lowercase()] ?: 0.0
+        val bmiVar = bmiVarianceMultiplier[bmiCategory?.lowercase()] ?: 1.0
 
         return CyclePrior(
             cycleMean = basePrior.cycleMean + bmiAdj,

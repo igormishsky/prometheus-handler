@@ -16,6 +16,21 @@ import kotlin.math.sqrt
 
 class PredictionEngine {
 
+    companion object {
+        const val MIN_PREDICTED_CYCLE_LENGTH = 15.0
+        const val MAX_PREDICTED_CYCLE_LENGTH = 60.0
+        const val MIN_CONFIDENCE = 0.1
+        const val MAX_CONFIDENCE = 0.95
+        const val TREND_THRESHOLD = 0.3
+        const val TREND_ADJUSTMENT_FACTOR = 0.5
+        const val MIN_CYCLES_FOR_TREND = 8
+        const val MIN_RECENT_CYCLES_FOR_TREND = 4
+        const val RECENT_CYCLE_COUNT = 6
+        const val MIN_CYCLES_FOR_INDIVIDUAL_LUTEAL = 3
+        const val DEFAULT_FUTURE_CYCLES = 12
+        const val PREDICTIONS_PER_CYCLE = 7
+    }
+
     data class PredictionResult(
         val nextPeriodStart: LocalDate,
         val periodEnd: LocalDate,
@@ -39,7 +54,6 @@ class PredictionEngine {
         val validCycles = cycles.filter { !it.isExcluded && it.cycleLength != null }
         val n = validCycles.size
 
-        // Step 1-2: Compute individual statistics
         val individualMean: Double
         val individualSD: Double
         val individualPeriodMean: Double
@@ -56,30 +70,27 @@ class PredictionEngine {
             individualPeriodMean = PopulationPriors.POPULATION_MEAN_PERIOD
         }
 
-        // Step 3: Bayesian weighting
         val wPop = max(PopulationPriors.MIN_POPULATION_WEIGHT, 1.0 - (n.toDouble() / PopulationPriors.TRANSITION_CYCLES))
         val wInd = 1.0 - wPop
 
-        // Step 4: Blended prediction
         var predictedCycleLength = wPop * prior.cycleMean + wInd * individualMean
         val predictedVariance = wPop * (prior.cycleSD * prior.cycleSD) + wInd * (individualSD * individualSD)
 
-        // Step 5: Trend adjustment for 8+ cycles
-        if (n >= 8) {
-            val recent = validCycles.takeLast(6).mapNotNull { it.cycleLength }
-            if (recent.size >= 4) {
+        if (n >= MIN_CYCLES_FOR_TREND) {
+            val recent = validCycles.takeLast(RECENT_CYCLE_COUNT).mapNotNull { it.cycleLength }
+            if (recent.size >= MIN_RECENT_CYCLES_FOR_TREND) {
                 val slope = linearRegressionSlope(recent)
-                if (abs(slope) > 0.3) {
-                    predictedCycleLength += slope * 0.5
+                if (abs(slope) > TREND_THRESHOLD) {
+                    predictedCycleLength += slope * TREND_ADJUSTMENT_FACTOR
                 }
             }
         }
 
-        // Step 6: Compute predicted dates
+        predictedCycleLength = predictedCycleLength.coerceIn(MIN_PREDICTED_CYCLE_LENGTH, MAX_PREDICTED_CYCLE_LENGTH)
+
         val nextPeriodStart = currentCycleStartDate.plusDays(predictedCycleLength.roundToInt().toLong())
 
-        val userLutealEstimate = if (n >= 3) {
-            // Estimate luteal phase as predicted cycle length minus estimated follicular phase
+        val userLutealEstimate = if (n >= MIN_CYCLES_FOR_INDIVIDUAL_LUTEAL) {
             val estimatedFollicular = individualMean - prior.lutealMean
             val est = predictedCycleLength - estimatedFollicular
             est.coerceIn(7.0, 17.0)
@@ -92,11 +103,11 @@ class PredictionEngine {
         val fertileWindowEnd = ovulationDate.plusDays(PopulationPriors.FERTILE_WINDOW_END_AFTER_OVULATION.toLong())
         val pmsStart = nextPeriodStart.minusDays(PopulationPriors.PMS_WINDOW_START_BEFORE_PERIOD.toLong())
         val pmsEnd = nextPeriodStart.minusDays(PopulationPriors.PMS_WINDOW_END_BEFORE_PERIOD.toLong())
-        val periodEnd = nextPeriodStart.plusDays(individualPeriodMean.roundToInt().toLong() - 1)
+        val periodDays = individualPeriodMean.roundToInt().toLong().coerceIn(1, 15)
+        val periodEnd = nextPeriodStart.plusDays(periodDays - 1)
 
-        // Step 7: Confidence
         val confidence = calculateConfidence(n, predictedVariance, sqrt(predictedVariance))
-        val sqrtVar = ceil(sqrt(predictedVariance)).toLong()
+        val sqrtVar = ceil(sqrt(predictedVariance)).toLong().coerceAtLeast(1)
         val lowerBound = nextPeriodStart.minusDays(sqrtVar)
         val upperBound = nextPeriodStart.plusDays(sqrtVar)
 
@@ -118,15 +129,16 @@ class PredictionEngine {
         cycles: List<Cycle>,
         userAge: Int?,
         userBmi: String?,
-        numberOfFutureCycles: Int = 12
+        numberOfFutureCycles: Int = DEFAULT_FUTURE_CYCLES
     ): List<Prediction> {
         if (cycles.isEmpty()) return emptyList()
 
+        val safeFutureCycles = numberOfFutureCycles.coerceIn(1, 24)
         val lastCycle = cycles.maxByOrNull { it.startDate } ?: return emptyList()
         val predictions = mutableListOf<Prediction>()
         var currentStartDate = lastCycle.startDate
 
-        for (i in 0 until numberOfFutureCycles) {
+        for (i in 0 until safeFutureCycles) {
             val result = predictNextCycle(cycles, userAge, userBmi, currentStartDate)
 
             predictions.addAll(listOf(
@@ -155,15 +167,17 @@ class PredictionEngine {
         id = UuidGenerator.generate(),
         type = type,
         predictedDate = date,
-        confidence = confidence.coerceIn(0.1, 0.95),
+        confidence = confidence.coerceIn(MIN_CONFIDENCE, MAX_CONFIDENCE),
         lowerBound = lowerBound,
         upperBound = upperBound,
         algorithmVersion = PopulationPriors.ALGORITHM_VERSION
     )
 
     private fun adjustForSkips(cycleLength: Int, priorMean: Double): Double {
+        if (priorMean <= 0) return cycleLength.toDouble()
         return if (cycleLength > priorMean * 1.8) {
-            cycleLength.toDouble() / (cycleLength / priorMean).roundToInt()
+            val divisor = (cycleLength / priorMean).roundToInt().coerceAtLeast(1)
+            cycleLength.toDouble() / divisor
         } else {
             cycleLength.toDouble()
         }
@@ -172,7 +186,7 @@ class PredictionEngine {
     private fun calculateConfidence(cyclesTracked: Int, variance: Double, sd: Double): Double {
         val cycleConf = min(0.9, 0.3 + cyclesTracked * 0.08)
         val variancePenalty = min(0.3, sd / 15.0)
-        return (cycleConf - variancePenalty).coerceIn(0.1, 0.95)
+        return (cycleConf - variancePenalty).coerceIn(MIN_CONFIDENCE, MAX_CONFIDENCE)
     }
 
     private fun linearRegressionSlope(values: List<Int>): Double {
@@ -186,6 +200,6 @@ class PredictionEngine {
             numerator += (i - xMean) * (values[i] - yMean)
             denominator += (i - xMean) * (i - xMean)
         }
-        return if (denominator != 0.0) numerator / denominator else 0.0
+        return if (denominator > 0.0) numerator / denominator else 0.0
     }
 }

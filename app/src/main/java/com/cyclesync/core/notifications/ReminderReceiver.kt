@@ -15,11 +15,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val type = intent.getStringExtra(ReminderManager.EXTRA_REMINDER_TYPE) ?: return
         val privacyName = intent.getStringExtra(ReminderManager.EXTRA_PRIVACY_LEVEL)
             ?: NotificationPrivacy.HIGH.name
-        val privacy = try {
-            NotificationPrivacy.valueOf(privacyName)
-        } catch (_: Exception) {
-            NotificationPrivacy.HIGH
-        }
+        val privacy = NotificationPrivacy.fromNameOrNull(privacyName) ?: NotificationPrivacy.HIGH
 
         val (title, body) = getNotificationContent(type, privacy)
 
@@ -50,7 +46,6 @@ class ReminderReceiver : BroadcastReceiver() {
     private fun getNotificationContent(type: String, privacy: NotificationPrivacy): Pair<String, String> {
         return when (privacy) {
             NotificationPrivacy.HIGH -> {
-                // Discreet — no health details
                 "CycleSync" to "You have an upcoming event. Open app for details."
             }
             NotificationPrivacy.MEDIUM -> {

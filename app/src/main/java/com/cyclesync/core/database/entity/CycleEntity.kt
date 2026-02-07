@@ -2,9 +2,17 @@ package com.cyclesync.core.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "cycles")
+@Entity(
+    tableName = "cycles",
+    indices = [
+        Index(value = ["start_date"]),
+        Index(value = ["end_date"]),
+        Index(value = ["is_excluded"])
+    ]
+)
 data class CycleEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "cycle_number") val cycleNumber: Int,

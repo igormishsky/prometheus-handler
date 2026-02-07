@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import com.cyclesync.domain.entity.NotificationPrivacy
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -20,6 +19,7 @@ class ReminderManager @Inject constructor() {
     companion object {
         const val CHANNEL_ID = "cyclesync_reminders"
         const val CHANNEL_NAME = "Cycle Reminders"
+        const val CHANNEL_DESCRIPTION = "Reminders for your cycle events"
         const val EXTRA_REMINDER_TYPE = "reminder_type"
         const val EXTRA_PRIVACY_LEVEL = "privacy_level"
 
@@ -28,6 +28,24 @@ class ReminderManager @Inject constructor() {
         const val TYPE_PMS_START = "pms_start"
         const val TYPE_FERTILE_WINDOW = "fertile_window"
         const val TYPE_LOG_REMINDER = "log_reminder"
+
+        private const val REQUEST_CODE_PERIOD_UPCOMING = 1001
+        private const val REQUEST_CODE_PERIOD_TODAY = 1002
+        private const val REQUEST_CODE_PMS = 1003
+        private const val REQUEST_CODE_FERTILE = 1004
+        private const val REQUEST_CODE_LOG = 1005
+
+        private const val DEFAULT_REMINDER_HOUR = 9
+        private const val LOG_REMINDER_HOUR = 21
+        private const val DEFAULT_DAYS_BEFORE_PERIOD = 2
+
+        private val ALL_REQUEST_CODES = listOf(
+            REQUEST_CODE_PERIOD_UPCOMING,
+            REQUEST_CODE_PERIOD_TODAY,
+            REQUEST_CODE_PMS,
+            REQUEST_CODE_FERTILE,
+            REQUEST_CODE_LOG
+        )
     }
 
     fun createNotificationChannel(context: Context) {
@@ -36,27 +54,27 @@ class ReminderManager @Inject constructor() {
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Reminders for your cycle events"
+            description = CHANNEL_DESCRIPTION
         }
         val notificationManager = context.getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
+        notificationManager?.createNotificationChannel(channel)
     }
 
     fun schedulePeriodReminder(
         context: Context,
         predictedDate: LocalDate,
-        daysBeforeNotify: Int = 2,
+        daysBeforeNotify: Int = DEFAULT_DAYS_BEFORE_PERIOD,
         privacyLevel: NotificationPrivacy = NotificationPrivacy.HIGH
     ) {
-        val notifyDate = predictedDate.minusDays(daysBeforeNotify.toLong())
-        if (notifyDate.isBefore(LocalDate.now()) || notifyDate.isEqual(LocalDate.now())) {
+        val today = LocalDate.now()
+        val notifyDate = predictedDate.minusDays(daysBeforeNotify.toLong().coerceAtLeast(0))
+        if (!notifyDate.isAfter(today)) {
             return
         }
-        scheduleAlarm(context, notifyDate, TYPE_PERIOD_UPCOMING, 1001, privacyLevel)
+        scheduleAlarm(context, notifyDate, TYPE_PERIOD_UPCOMING, REQUEST_CODE_PERIOD_UPCOMING, privacyLevel)
 
-        // Also schedule for the day of
-        if (predictedDate.isAfter(LocalDate.now())) {
-            scheduleAlarm(context, predictedDate, TYPE_PERIOD_TODAY, 1002, privacyLevel)
+        if (predictedDate.isAfter(today)) {
+            scheduleAlarm(context, predictedDate, TYPE_PERIOD_TODAY, REQUEST_CODE_PERIOD_TODAY, privacyLevel)
         }
     }
 
@@ -65,10 +83,10 @@ class ReminderManager @Inject constructor() {
         pmsDate: LocalDate,
         privacyLevel: NotificationPrivacy = NotificationPrivacy.HIGH
     ) {
-        if (pmsDate.isBefore(LocalDate.now()) || pmsDate.isEqual(LocalDate.now())) {
+        if (!pmsDate.isAfter(LocalDate.now())) {
             return
         }
-        scheduleAlarm(context, pmsDate, TYPE_PMS_START, 1003, privacyLevel)
+        scheduleAlarm(context, pmsDate, TYPE_PMS_START, REQUEST_CODE_PMS, privacyLevel)
     }
 
     fun scheduleFertileWindowReminder(
@@ -76,19 +94,18 @@ class ReminderManager @Inject constructor() {
         fertileStartDate: LocalDate,
         privacyLevel: NotificationPrivacy = NotificationPrivacy.HIGH
     ) {
-        if (fertileStartDate.isBefore(LocalDate.now()) || fertileStartDate.isEqual(LocalDate.now())) {
+        if (!fertileStartDate.isAfter(LocalDate.now())) {
             return
         }
-        scheduleAlarm(context, fertileStartDate, TYPE_FERTILE_WINDOW, 1004, privacyLevel)
+        scheduleAlarm(context, fertileStartDate, TYPE_FERTILE_WINDOW, REQUEST_CODE_FERTILE, privacyLevel)
     }
 
     fun scheduleDailyLogReminder(
         context: Context,
         privacyLevel: NotificationPrivacy = NotificationPrivacy.HIGH
     ) {
-        // Schedule for 9 PM daily
         val now = LocalDateTime.now()
-        var reminderTime = now.withHour(21).withMinute(0).withSecond(0)
+        var reminderTime = now.withHour(LOG_REMINDER_HOUR).withMinute(0).withSecond(0)
         if (reminderTime.isBefore(now)) {
             reminderTime = reminderTime.plusDays(1)
         }
@@ -100,25 +117,29 @@ class ReminderManager @Inject constructor() {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            1005,
+            REQUEST_CODE_LOG,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val triggerMillis = reminderTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-        alarmManager.setRepeating(
-            AlarmManager.RTC_WAKEUP,
-            triggerMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
+        try {
+            alarmManager.setRepeating(
+                AlarmManager.RTC_WAKEUP,
+                triggerMillis,
+                AlarmManager.INTERVAL_DAY,
+                pendingIntent
+            )
+        } catch (_: SecurityException) {
+            // SCHEDULE_EXACT_ALARM permission not granted on Android 12+
+        }
     }
 
     fun cancelAllReminders(context: Context) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        listOf(1001, 1002, 1003, 1004, 1005).forEach { requestCode ->
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        ALL_REQUEST_CODES.forEach { requestCode ->
             val intent = Intent(context, ReminderReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -126,7 +147,13 @@ class ReminderManager @Inject constructor() {
                 intent,
                 PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
             )
-            pendingIntent?.let { alarmManager.cancel(it) }
+            pendingIntent?.let {
+                try {
+                    alarmManager.cancel(it)
+                } catch (_: Exception) {
+                    // Ignore cancellation failures
+                }
+            }
         }
     }
 
@@ -149,14 +176,20 @@ class ReminderManager @Inject constructor() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        // Schedule for 9 AM on the given date
-        val triggerTime = date.atTime(9, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val triggerTime = date.atTime(DEFAULT_REMINDER_HOUR, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerTime,
-            pendingIntent
-        )
+        try {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerTime,
+                pendingIntent
+            )
+        } catch (_: SecurityException) {
+            // SCHEDULE_EXACT_ALARM permission not granted on Android 12+
+        }
     }
 }

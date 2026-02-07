@@ -69,31 +69,32 @@ class CycleRepositoryImpl @Inject constructor(
         id = id,
         cycleNumber = cycleNumber,
         startDate = DateUtils.fromIsoString(startDate),
-        endDate = endDate?.let { DateUtils.fromIsoString(it) },
+        endDate = endDate?.let { DateUtils.fromIsoStringOrNull(it) },
         periodStartDate = DateUtils.fromIsoString(periodStartDate),
-        periodEndDate = periodEndDate?.let { DateUtils.fromIsoString(it) },
+        periodEndDate = periodEndDate?.let { DateUtils.fromIsoStringOrNull(it) },
         cycleLength = cycleLength,
         periodLength = periodLength,
         isExcluded = isExcluded,
         notes = notes,
-        skipReason = skipReason?.let {
-            try { SkipReason.valueOf(it) } catch (_: Exception) { null }
-        }
+        skipReason = SkipReason.fromNameOrNull(skipReason)
     )
 
-    private fun Cycle.toEntity(): CycleEntity = CycleEntity(
-        id = id,
-        cycleNumber = cycleNumber,
-        startDate = DateUtils.toIsoString(startDate),
-        endDate = endDate?.let { DateUtils.toIsoString(it) },
-        periodStartDate = DateUtils.toIsoString(periodStartDate),
-        periodEndDate = periodEndDate?.let { DateUtils.toIsoString(it) },
-        cycleLength = cycleLength,
-        periodLength = periodLength,
-        isExcluded = isExcluded,
-        notes = notes,
-        skipReason = skipReason?.name,
-        createdAt = DateUtils.toIsoString(LocalDate.now()),
-        updatedAt = DateUtils.toIsoString(LocalDate.now())
-    )
+    private fun Cycle.toEntity(): CycleEntity {
+        val now = DateUtils.toIsoString(LocalDate.now())
+        return CycleEntity(
+            id = id,
+            cycleNumber = cycleNumber,
+            startDate = DateUtils.toIsoString(startDate),
+            endDate = endDate?.let { DateUtils.toIsoString(it) },
+            periodStartDate = DateUtils.toIsoString(periodStartDate),
+            periodEndDate = periodEndDate?.let { DateUtils.toIsoString(it) },
+            cycleLength = cycleLength,
+            periodLength = periodLength,
+            isExcluded = isExcluded,
+            notes = notes?.take(5000),
+            skipReason = skipReason?.name,
+            createdAt = now,
+            updatedAt = now
+        )
+    }
 }
