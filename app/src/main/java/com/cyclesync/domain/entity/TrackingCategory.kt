@@ -19,7 +19,10 @@ enum class TrackingCategory(val displayName: String) {
     WEIGHT("Weight"),
     MEDICATION("Medication"),
     PERIMENOPAUSE("Perimenopause"),
-    PREGNANCY("Pregnancy")
+    PREGNANCY("Pregnancy"),
+    SELF_CARE("Self Care"),
+    HYDRATION("Hydration"),
+    GRATITUDE("Gratitude")
 }
 
 object TrackingSubcategories {
@@ -104,5 +107,26 @@ object TrackingSubcategories {
         "braxton_hicks" to listOf("yes"),
         "swelling" to listOf("none", "mild", "moderate", "severe"),
         "supplement_taken" to listOf("prenatal", "iron", "folate", "dha", "other")
+    )
+
+    val selfCare = mapOf(
+        "activities" to listOf(
+            "meditation", "journaling", "face_mask", "bath", "reading",
+            "skincare_routine", "nail_care", "hair_care", "aromatherapy",
+            "breathing_exercises", "nature_walk", "creative_time"
+        ),
+        "pampering" to listOf(
+            "massage", "spa_day", "body_care", "relaxation_music", "candles"
+        )
+    )
+
+    val hydration = mapOf(
+        "glasses" to listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
+        "beverages" to listOf("water", "herbal_tea", "green_tea", "smoothie", "juice", "coconut_water")
+    )
+
+    val gratitude = listOf(
+        "family", "friends", "health", "nature", "work",
+        "self_growth", "love", "creativity", "peace", "joy"
     )
 }
