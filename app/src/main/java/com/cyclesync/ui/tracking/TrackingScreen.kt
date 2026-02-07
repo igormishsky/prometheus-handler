@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cyclesync.core.constants.AppColors
+import com.cyclesync.domain.entity.SkipReason
 import com.cyclesync.domain.entity.TrackingCategory
 import com.cyclesync.domain.entity.TrackingSubcategories
 import java.time.format.DateTimeFormatter
@@ -88,6 +89,17 @@ fun TrackingScreen(
                 flowIntensity = state.flowIntensity,
                 onFlowChange = { viewModel.setFlowIntensity(it) }
             )
+
+            // Irregular cycle toggle (shows when period is on)
+            if (state.isPeriodDay) {
+                Spacer(modifier = Modifier.height(8.dp))
+                IrregularCycleCard(
+                    isIrregular = state.isIrregular,
+                    skipReason = state.skipReason,
+                    onToggleIrregular = { viewModel.toggleIrregular(it) },
+                    onSelectReason = { viewModel.setSkipReason(it) }
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -136,6 +148,40 @@ fun TrackingScreen(
                 onToggle = { viewModel.toggleEntry(TrackingCategory.MENTAL, it) }
             )
 
+            // Sleep section
+            TrackingSection(
+                title = "Sleep Quality",
+                items = TrackingSubcategories.sleep["quality"] ?: emptyList(),
+                category = TrackingCategory.SLEEP,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.SLEEP, it) }
+            )
+
+            TrackingSection(
+                title = "Sleep Issues",
+                items = TrackingSubcategories.sleep["symptoms"] ?: emptyList(),
+                category = TrackingCategory.SLEEP,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.SLEEP, it) }
+            )
+
+            // Exercise section
+            TrackingSection(
+                title = "Exercise Type",
+                items = TrackingSubcategories.exercise["type"] ?: emptyList(),
+                category = TrackingCategory.EXERCISE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.EXERCISE, it) }
+            )
+
+            TrackingSection(
+                title = "Exercise Intensity",
+                items = TrackingSubcategories.exercise["intensity"] ?: emptyList(),
+                category = TrackingCategory.EXERCISE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.EXERCISE, it) }
+            )
+
             // Digestion symptoms
             TrackingSection(
                 title = "Digestion",
@@ -143,6 +189,76 @@ fun TrackingScreen(
                 category = TrackingCategory.DIGESTION,
                 selectedEntries = state.entries,
                 onToggle = { viewModel.toggleEntry(TrackingCategory.DIGESTION, it) }
+            )
+
+            // Appetite & Cravings
+            TrackingSection(
+                title = "Appetite",
+                items = TrackingSubcategories.digestion["appetite"] ?: emptyList(),
+                category = TrackingCategory.DIGESTION,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.DIGESTION, it) }
+            )
+
+            TrackingSection(
+                title = "Cravings",
+                items = TrackingSubcategories.digestion["cravings"] ?: emptyList(),
+                category = TrackingCategory.DIGESTION,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.DIGESTION, it) }
+            )
+
+            // Social section
+            TrackingSection(
+                title = "Social",
+                items = TrackingSubcategories.social,
+                category = TrackingCategory.SOCIAL,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.SOCIAL, it) }
+            )
+
+            // Hair section
+            TrackingSection(
+                title = "Hair",
+                items = TrackingSubcategories.hair,
+                category = TrackingCategory.HAIR,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.HAIR, it) }
+            )
+
+            // Discharge section
+            TrackingSection(
+                title = "Discharge Type",
+                items = TrackingSubcategories.discharge["type"] ?: emptyList(),
+                category = TrackingCategory.DISCHARGE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.DISCHARGE, it) }
+            )
+
+            TrackingSection(
+                title = "Discharge Amount",
+                items = TrackingSubcategories.discharge["amount"] ?: emptyList(),
+                category = TrackingCategory.DISCHARGE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.DISCHARGE, it) }
+            )
+
+            // Sex section
+            TrackingSection(
+                title = "Libido",
+                items = TrackingSubcategories.sex["libido"] ?: emptyList(),
+                category = TrackingCategory.SEX,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.SEX, it) }
+            )
+
+            // Stool (Bristol Scale)
+            TrackingSection(
+                title = "Stool (Bristol Scale)",
+                items = TrackingSubcategories.bristolStool,
+                category = TrackingCategory.STOOL,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.STOOL, it) }
             )
 
             // Notes
@@ -235,6 +351,87 @@ private fun Card(
                         ) {
                             Text(
                                 text = flow.replace("_", " ").replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun IrregularCycleCard(
+    isIrregular: Boolean,
+    skipReason: SkipReason?,
+    onToggleIrregular: (Boolean) -> Unit,
+    onSelectReason: (SkipReason?) -> Unit
+) {
+    androidx.compose.material3.Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isIrregular) AppColors.Warning.copy(alpha = 0.1f)
+            else MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Mark as irregular",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = if (isIrregular) AppColors.Warning else MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Exclude from predictions (illness, stress, etc.)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = isIrregular,
+                    onCheckedChange = onToggleIrregular,
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = AppColors.Warning
+                    )
+                )
+            }
+
+            if (isIrregular) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Reason", style = MaterialTheme.typography.labelMedium)
+                Spacer(modifier = Modifier.height(4.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SkipReason.entries.forEach { reason ->
+                        val isSelected = skipReason == reason
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isSelected) AppColors.Warning
+                                    else MaterialTheme.colorScheme.surface
+                                )
+                                .border(
+                                    1.dp,
+                                    if (isSelected) AppColors.Warning else MaterialTheme.colorScheme.outline,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .clickable { onSelectReason(if (isSelected) null else reason) }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = reason.displayName,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                             )

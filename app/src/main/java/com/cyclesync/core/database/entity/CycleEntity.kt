@@ -16,6 +16,7 @@ data class CycleEntity(
     @ColumnInfo(name = "period_length") val periodLength: Int? = null,
     @ColumnInfo(name = "is_excluded") val isExcluded: Boolean = false,
     @ColumnInfo(name = "notes") val notes: String? = null,
+    @ColumnInfo(name = "skip_reason") val skipReason: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: String = "",
     @ColumnInfo(name = "updated_at") val updatedAt: String = ""
 )

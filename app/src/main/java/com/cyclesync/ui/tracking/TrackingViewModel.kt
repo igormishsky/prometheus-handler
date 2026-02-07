@@ -7,6 +7,7 @@ import com.cyclesync.core.utils.DateUtils
 import com.cyclesync.core.utils.UuidGenerator
 import com.cyclesync.domain.entity.Cycle
 import com.cyclesync.domain.entity.DailyLog
+import com.cyclesync.domain.entity.SkipReason
 import com.cyclesync.domain.entity.TrackingCategory
 import com.cyclesync.domain.entity.TrackingEntry
 import com.cyclesync.domain.prediction.PredictionEngine
@@ -29,6 +30,8 @@ data class TrackingState(
     val notes: String = "",
     val isPeriodDay: Boolean = false,
     val flowIntensity: String? = null,
+    val isIrregular: Boolean = false,
+    val skipReason: SkipReason? = null,
     val isLoading: Boolean = true,
     val isSaved: Boolean = false
 )
@@ -115,6 +118,17 @@ class TrackingViewModel @Inject constructor(
         _state.value = _state.value.copy(notes = notes)
     }
 
+    fun toggleIrregular(isIrregular: Boolean) {
+        _state.value = _state.value.copy(
+            isIrregular = isIrregular,
+            skipReason = if (!isIrregular) null else _state.value.skipReason
+        )
+    }
+
+    fun setSkipReason(reason: SkipReason?) {
+        _state.value = _state.value.copy(skipReason = reason)
+    }
+
     fun save() {
         viewModelScope.launch {
             val date = _state.value.date
@@ -141,7 +155,9 @@ class TrackingViewModel @Inject constructor(
                     id = UuidGenerator.generate(),
                     cycleNumber = cycleNum,
                     startDate = date,
-                    periodStartDate = date
+                    periodStartDate = date,
+                    isExcluded = _state.value.isIrregular,
+                    skipReason = _state.value.skipReason
                 )
                 cycleRepository.insertCycle(newCycle)
 

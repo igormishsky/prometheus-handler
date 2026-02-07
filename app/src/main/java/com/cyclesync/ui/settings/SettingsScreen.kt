@@ -1,6 +1,8 @@
 package com.cyclesync.ui.settings
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,18 +24,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cyclesync.core.utils.CsvExporter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +49,17 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // Handle export share intent
+    LaunchedEffect(state.exportReady) {
+        if (state.exportReady && state.exportUri != null) {
+            val shareIntent = CsvExporter.createShareIntent(state.exportUri!!)
+            context.startActivity(Intent.createChooser(shareIntent, "Export CycleSync Data"))
+            viewModel.clearExportState()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -93,6 +110,23 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Reminders
+            SectionHeader("Reminders")
+            SettingsToggleRow(
+                label = "Cycle reminders",
+                description = "Get notified before your period, PMS, and fertile window",
+                checked = state.remindersEnabled,
+                onCheckedChange = { viewModel.toggleReminders(context, it) }
+            )
+            SettingsToggleRow(
+                label = "Daily log reminder",
+                description = "Nightly reminder to log your symptoms at 9 PM",
+                checked = state.dailyLogReminder,
+                onCheckedChange = { viewModel.toggleDailyLogReminder(context, it) }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Privacy
             SectionHeader("Privacy & Security")
             SettingsRow("App lock", "Not set")
@@ -103,7 +137,27 @@ fun SettingsScreen(
 
             // Data
             SectionHeader("Data")
-            SettingsRow("Export data (CSV)", "")
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.exportData(context) },
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Export Data (CSV)",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Export all cycles and daily logs as a CSV file",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             SettingsRow("Create backup", "")
             SettingsRow("Import backup", "")
 
@@ -203,6 +257,39 @@ private fun SettingsRow(label: String, value: String) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+}
+
+@Composable
+private fun SettingsToggleRow(
+    label: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 }
