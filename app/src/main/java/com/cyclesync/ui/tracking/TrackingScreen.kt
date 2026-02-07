@@ -46,6 +46,7 @@ import com.cyclesync.core.constants.AppColors
 import com.cyclesync.domain.entity.SkipReason
 import com.cyclesync.domain.entity.TrackingCategory
 import com.cyclesync.domain.entity.TrackingSubcategories
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -82,6 +83,17 @@ fun TrackingScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
+            // Motivational check-in prompt
+            val entryCount = state.entries.size + (if (state.isPeriodDay) 1 else 0)
+            if (entryCount == 0) {
+                Text(
+                    text = getCheckInPrompt(state.date),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
+
             // Period toggle
             Card(
                 isPeriod = state.isPeriodDay,
@@ -319,7 +331,15 @@ fun TrackingScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Save button
+            // Dynamic save button with encouragement
+            val totalEntries = state.entries.size + (if (state.isPeriodDay) 1 else 0)
+            val saveText = when {
+                totalEntries == 0 -> "Save Entry"
+                totalEntries < 3 -> "Save \u2014 Great start!"
+                totalEntries < 6 -> "Save \u2014 Nice detail!"
+                totalEntries < 10 -> "Save \u2014 Thorough check-in!"
+                else -> "Save \u2014 Amazing self-awareness!"
+            }
             Button(
                 onClick = { viewModel.save() },
                 modifier = Modifier.fillMaxWidth(),
@@ -327,7 +347,18 @@ fun TrackingScreen(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Text("Save", modifier = Modifier.padding(vertical = 8.dp))
+                Text(saveText, modifier = Modifier.padding(vertical = 8.dp))
+            }
+
+            if (totalEntries > 0) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "$totalEntries items logged \u2014 every detail helps your predictions improve",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -529,4 +560,15 @@ private fun TrackingSection(
             }
         }
     }
+}
+
+private fun getCheckInPrompt(date: LocalDate): String {
+    val prompts = listOf(
+        "Take a moment to check in with your body. What are you noticing today?",
+        "Your future self will thank you for tracking today. What stands out?",
+        "Every entry makes your predictions smarter. How are you feeling?",
+        "You know your body best. Capture what it\u2019s telling you today.",
+        "Small observations add up to powerful insights. What do you notice?"
+    )
+    return prompts[date.dayOfYear % prompts.size]
 }

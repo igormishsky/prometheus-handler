@@ -114,7 +114,7 @@ fun OnboardingScreen(
                     }
                 }
             ) {
-                Text(if (currentStep == 5) "Get Started" else "Next")
+                Text(if (currentStep == 5) "Start My Journey" else "Next")
             }
         }
     }
@@ -128,12 +128,26 @@ private fun WelcomeStep() {
             style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Your data stays on YOUR device.\nNo accounts. No cloud. No tracking.",
-            style = MaterialTheme.typography.bodyLarge,
+            text = "The cycle tracker that\nactually respects you.",
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Most period apps sell your intimate health data to advertisers, insurers, and data brokers. CycleSync is different \u2014 your data never leaves your device. Ever.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Trusted by women who refuse to\nbe the product.",
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -142,27 +156,42 @@ private fun WelcomeStep() {
 private fun PrivacyStep() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Privacy First",
+            text = "Your Body, Your Data.",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "No one should profit from your most personal health information.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(20.dp))
         val points = listOf(
-            "All data encrypted on device",
-            "Zero network connections",
-            "No analytics or tracking",
-            "Optional biometric lock",
-            "Emergency data wipe available"
+            "Military-grade encryption on your device",
+            "Zero internet access \u2014 we can\u2019t see your data even if we wanted to",
+            "No accounts, no email, no phone number",
+            "Biometric lock \u2014 only your fingerprint opens it",
+            "Panic wipe \u2014 erase everything instantly if needed"
         )
         points.forEach { point ->
-            Text(
-                text = "  $point",
-                style = MaterialTheme.typography.bodyLarge,
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onBackground
-            )
+                    .padding(vertical = 3.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                )
+            ) {
+                Text(
+                    text = point,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
     }
 }
@@ -174,9 +203,16 @@ private fun CycleLengthStep(viewModel: OnboardingViewModel) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Your Cycle",
+            text = "Let\u2019s Personalize",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "This helps our Bayesian prediction engine learn your unique pattern faster.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -205,7 +241,7 @@ private fun CycleLengthStep(viewModel: OnboardingViewModel) {
             viewModel.setCycleLength(29)
             viewModel.setPeriodLength(5)
         }) {
-            Text("Not sure? Use defaults")
+            Text("Not sure? Use averages \u2014 it gets smarter over time")
         }
     }
 }
@@ -274,23 +310,23 @@ private fun ModeSelectionStep(viewModel: OnboardingViewModel) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Choose Your Mode",
+            text = "What\u2019s Your Goal?",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "You can switch modes anytime",
+            text = "CycleSync adapts to your life stage. Switch anytime.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(24.dp))
 
         val modes = listOf(
-            AppMode.PERIOD_TRACKING to "Track your cycle, symptoms, and get predictions",
-            AppMode.CONCEIVE to "Fertility tracking with fertile window predictions",
-            AppMode.PREGNANCY to "Week-by-week pregnancy tracking",
-            AppMode.PERIMENOPAUSE to "Adapted for irregular cycles and transition symptoms"
+            AppMode.PERIOD_TRACKING to "Understand your body with AI-powered cycle predictions",
+            AppMode.CONCEIVE to "Pinpoint your fertile window with scientific precision",
+            AppMode.PREGNANCY to "Track your pregnancy journey week by week",
+            AppMode.PERIMENOPAUSE to "Navigate the transition with personalized insights"
         )
 
         modes.forEach { (mode, description) ->
@@ -329,16 +365,58 @@ private fun ModeSelectionStep(viewModel: OnboardingViewModel) {
 private fun CompletionStep() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "You're All Set",
+            text = "You\u2019re In Control.",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "CycleSync is ready to use.\n\nAll your data is encrypted and stored only on this device. No one else can access it.",
+            text = "Welcome to the only cycle tracker that puts you first.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "What happens next:",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                val steps = listOf(
+                    "Log your first entry \u2014 it only takes 30 seconds",
+                    "Predictions improve with each cycle you track",
+                    "Discover patterns you never knew about your body"
+                )
+                steps.forEachIndexed { index, step ->
+                    Text(
+                        text = "${index + 1}. $step",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Your data is encrypted and stored only on this device.\nNo one else can ever access it.",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

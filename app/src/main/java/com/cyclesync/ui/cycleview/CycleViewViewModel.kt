@@ -42,7 +42,11 @@ data class CycleViewState(
     val fertileWindowEnd: LocalDate? = null,
     val pmsStart: LocalDate? = null,
     val dailyAffirmation: String = "",
-    val wellnessTip: String = ""
+    val wellnessTip: String = "",
+    val phaseSuperpower: String = "",
+    val bodyInsight: String = "",
+    val streakDays: Int = 0,
+    val streakMessage: String = ""
 )
 
 @HiltViewModel
@@ -56,6 +60,83 @@ class CycleViewViewModel @Inject constructor(
     val state: StateFlow<CycleViewState> = _state.asStateFlow()
 
     companion object {
+        val phaseSuperpowers = mapOf(
+            CyclePhase.MENSTRUATION to listOf(
+                "Your intuition is heightened right now \u2014 trust those gut feelings.",
+                "This is your reset phase. The stillness you feel is your body recharging.",
+                "Your brain hemispheres sync during menstruation \u2014 great for deep reflection.",
+                "Rest isn\u2019t a weakness. Elite athletes periodize rest too. You\u2019re in your recovery arc."
+            ),
+            CyclePhase.FOLLICULAR to listOf(
+                "Your brain is forming new neural connections faster right now. Learn something new!",
+                "Estrogen is boosting your verbal fluency \u2014 perfect day for important conversations.",
+                "Your pain tolerance is higher this phase. Push a little harder in that workout.",
+                "Creativity peaks in the follicular phase. Start that project you\u2019ve been dreaming about."
+            ),
+            CyclePhase.OVULATION to listOf(
+                "You\u2019re magnetically confident right now \u2014 this is your time to shine.",
+                "Your communication skills are at their peak. Ask for that raise, have that talk.",
+                "Research shows people perceive you as more attractive during ovulation. Own it.",
+                "Your energy is at its absolute peak. You were literally built for this moment."
+            ),
+            CyclePhase.LUTEAL to listOf(
+                "Your brain shifts to detail-oriented thinking now. Perfect for editing and refining.",
+                "Progesterone makes you more discerning \u2014 trust your instinct to say no.",
+                "This is your nesting phase. Organizing, planning, and completing feel natural.",
+                "Your body is doing powerful hormonal work behind the scenes. Honor the process."
+            ),
+            CyclePhase.PMS to listOf(
+                "Your inner critic is louder right now, but she\u2019s not telling the truth.",
+                "The sensitivity you feel is a superpower \u2014 it deepens your empathy and awareness.",
+                "This phase reveals what truly matters to you. Those feelings are data, not drama.",
+                "You\u2019re about to emerge from this cycle renewed. The best is ahead."
+            )
+        )
+
+        val bodyInsights = mapOf(
+            CyclePhase.MENSTRUATION to listOf(
+                "Your metabolism naturally slows \u2014 cravings for warm, comforting food are your body\u2019s wisdom.",
+                "Iron levels drop during menstruation. Dark leafy greens and red meat help replenish.",
+                "Prostaglandins cause cramps but also help your uterus shed efficiently. It\u2019s working as designed.",
+                "Your immune system is slightly suppressed. Extra sleep isn\u2019t lazy \u2014 it\u2019s strategic."
+            ),
+            CyclePhase.FOLLICULAR to listOf(
+                "Rising estrogen boosts serotonin and dopamine \u2014 that optimism you feel is biochemical.",
+                "Your muscles recover faster in this phase. It\u2019s the ideal time for strength training.",
+                "Skin tends to clear up as estrogen promotes collagen. Your glow is hormonal.",
+                "Insulin sensitivity improves now \u2014 your body processes carbs more efficiently."
+            ),
+            CyclePhase.OVULATION to listOf(
+                "Testosterone briefly spikes alongside estrogen, boosting libido and assertiveness.",
+                "Your cervical mucus changes to an egg-white consistency \u2014 a key fertility sign.",
+                "Body temperature rises slightly after ovulation (0.2\u20130.5\u00b0C) \u2014 confirming the shift.",
+                "Estrogen peaks make your skin glow and your features appear subtly more symmetrical."
+            ),
+            CyclePhase.LUTEAL to listOf(
+                "Progesterone raises your resting body temperature. Feeling warmer than usual is normal.",
+                "Your metabolism speeds up 2.5\u201311% \u2014 you genuinely need ~100\u2013300 extra calories.",
+                "Water retention causes bloating. Drinking more water paradoxically reduces it.",
+                "Progesterone has a mild sedative effect. Needing more sleep is your body being smart."
+            ),
+            CyclePhase.PMS to listOf(
+                "Dropping serotonin explains carb cravings \u2014 complex carbs genuinely help boost mood.",
+                "Magnesium levels dip before your period. Dark chocolate is actually medicinal right now.",
+                "Breast tenderness is caused by fluid retention from progesterone. It will pass.",
+                "Emotional sensitivity increases as estrogen and progesterone both drop rapidly."
+            )
+        )
+
+        fun getStreakMessage(days: Int): String = when {
+            days == 0 -> "Start tracking today to build your streak!"
+            days == 1 -> "Day 1 \u2014 every journey starts with a single step."
+            days < 7 -> "$days-day streak! You\u2019re building a powerful habit."
+            days < 14 -> "$days days strong! Your predictions are getting more accurate."
+            days < 30 -> "$days-day streak! You\u2019re uncovering patterns most people never see."
+            days < 60 -> "$days days! Your cycle data is revealing deep insights about your body."
+            days < 90 -> "$days-day streak! You know your body better than most people ever will."
+            else -> "$days days! You\u2019re a cycle-tracking powerhouse."
+        }
+
         val affirmations = listOf(
             "You are strong, capable, and worthy of love.",
             "Your body is amazing and deserves kindness.",
@@ -147,6 +228,19 @@ class CycleViewViewModel @Inject constructor(
         return tips[dayOfYear % tips.size]
     }
 
+    private fun getPhaseSuperpowerForToday(phase: CyclePhase): String {
+        val powers = phaseSuperpowers[phase] ?: phaseSuperpowers[CyclePhase.FOLLICULAR]!!
+        val dayOfYear = LocalDate.now().dayOfYear
+        return powers[dayOfYear % powers.size]
+    }
+
+    private fun getBodyInsightForToday(phase: CyclePhase): String {
+        val insights = bodyInsights[phase] ?: bodyInsights[CyclePhase.FOLLICULAR]!!
+        val dayOfYear = LocalDate.now().dayOfYear
+        // Offset by 7 so it doesn't rotate on the same schedule as superpowers
+        return insights[(dayOfYear + 7) % insights.size]
+    }
+
     private fun buildState(
         currentCycle: Cycle?,
         predictions: List<Prediction>,
@@ -164,7 +258,11 @@ class CycleViewViewModel @Inject constructor(
                 periodLength = typicalPeriodLength,
                 mode = settings?.activeMode?.displayName ?: "Period Tracking",
                 dailyAffirmation = getAffirmationForToday(),
-                wellnessTip = getWellnessTipForPhase(CyclePhase.FOLLICULAR)
+                wellnessTip = getWellnessTipForPhase(CyclePhase.FOLLICULAR),
+                phaseSuperpower = getPhaseSuperpowerForToday(CyclePhase.FOLLICULAR),
+                bodyInsight = getBodyInsightForToday(CyclePhase.FOLLICULAR),
+                streakDays = 0,
+                streakMessage = getStreakMessage(0)
             )
         }
 
@@ -201,6 +299,10 @@ class CycleViewViewModel @Inject constructor(
             ChronoUnit.DAYS.between(today, it.predictedDate).toInt()
         }
 
+        val streakDays = currentCycle.startDate?.let {
+            ChronoUnit.DAYS.between(it, today).toInt().coerceAtLeast(0)
+        } ?: 0
+
         return CycleViewState(
             currentCycleDay = cycleDay,
             predictedCycleLength = predictedLength,
@@ -219,7 +321,11 @@ class CycleViewViewModel @Inject constructor(
             fertileWindowEnd = fertileEnd?.predictedDate,
             pmsStart = pmsStart?.predictedDate,
             dailyAffirmation = getAffirmationForToday(),
-            wellnessTip = getWellnessTipForPhase(phase)
+            wellnessTip = getWellnessTipForPhase(phase),
+            phaseSuperpower = getPhaseSuperpowerForToday(phase),
+            bodyInsight = getBodyInsightForToday(phase),
+            streakDays = streakDays,
+            streakMessage = getStreakMessage(streakDays)
         )
     }
 }

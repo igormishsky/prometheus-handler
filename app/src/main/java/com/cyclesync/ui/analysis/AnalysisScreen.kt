@@ -56,8 +56,17 @@ fun AnalysisScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         if (!state.hasCycles) {
+            Spacer(modifier = Modifier.height(32.dp))
             Text(
-                text = "Track at least one complete cycle to see your analysis.",
+                text = "Your Insights Are Building",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Track your first complete cycle to unlock:\n\n\u2022 Average cycle and period length\n\u2022 Regularity scoring\n\u2022 Symptom pattern detection\n\u2022 Cycle-over-cycle trend analysis\n\nEach day you log brings you closer to understanding your body\u2019s unique rhythm.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

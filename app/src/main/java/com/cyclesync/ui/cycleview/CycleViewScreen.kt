@@ -15,7 +15,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.Card
@@ -120,23 +123,48 @@ fun CycleViewScreen(
             )
         } else {
             Text(
-                text = "No cycles tracked yet",
+                text = "Your Journey Starts Here",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Tap + to log your period",
+                text = "Log your first period to unlock personalized predictions, body insights, and cycle superpowers.",
                 style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Tap + to get started \u2014 it takes 30 seconds",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Streak Card (commitment/consistency hook)
+        if (state.streakDays > 0 || state.hasCycles) {
+            StreakCard(days = state.streakDays, message = state.streakMessage)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // Phase Superpower Card (identity/empowerment hook)
+        if (state.phaseSuperpower.isNotEmpty() && state.hasCycles) {
+            SuperpowerCard(superpower = state.phaseSuperpower, phase = state.currentPhase)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         // Daily Affirmation Card
         if (state.dailyAffirmation.isNotEmpty()) {
             AffirmationCard(affirmation = state.dailyAffirmation)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // Body Insight Card (variable reward / knowledge hook)
+        if (state.bodyInsight.isNotEmpty() && state.hasCycles) {
+            BodyInsightCard(insight = state.bodyInsight, phase = state.currentPhase)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -297,6 +325,125 @@ private fun PredictionInfoCard(
                     text = it.format(DateTimeFormatter.ofPattern("MMM d")),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StreakCard(days: Int, message: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.Ovulation.copy(alpha = 0.12f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocalFireDepartment,
+                contentDescription = null,
+                tint = AppColors.Ovulation,
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                if (days > 0) {
+                    Text(
+                        text = "$days-Day Tracking Streak",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = AppColors.Ovulation
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SuperpowerCard(superpower: String, phase: CyclePhase) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.Follicular.copy(alpha = 0.12f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = AppColors.Follicular,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Your ${phase.displayName} Superpower",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AppColors.Follicular
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = superpower,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BodyInsightCard(insight: String, phase: CyclePhase) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.Luteal.copy(alpha = 0.12f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Psychology,
+                contentDescription = null,
+                tint = AppColors.Luteal,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Your Body Right Now",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AppColors.Luteal
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = insight,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
