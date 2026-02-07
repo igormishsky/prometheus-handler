@@ -19,25 +19,27 @@ class PredictionRepositoryImpl @Inject constructor(
 
     override fun getActivePredictions(): Flow<List<Prediction>> {
         return predictionDao.getActivePredictions().map { entities ->
-            entities.map { it.toDomain() }
+            entities.mapNotNull { it.toDomainOrNull() }
         }
     }
 
     override suspend fun getActivePredictionsOnce(): List<Prediction> {
-        return predictionDao.getActivePredictionsOnce().map { it.toDomain() }
+        return predictionDao.getActivePredictionsOnce().mapNotNull { it.toDomainOrNull() }
     }
 
     override suspend fun getByType(type: PredictionType): List<Prediction> {
-        return predictionDao.getByType(type.name.lowercase()).map { it.toDomain() }
+        return predictionDao.getByType(type.name.lowercase()).mapNotNull { it.toDomainOrNull() }
     }
 
     override suspend fun getByCycleId(cycleId: String): List<Prediction> {
-        return predictionDao.getByCycleId(cycleId).map { it.toDomain() }
+        return predictionDao.getByCycleId(cycleId).mapNotNull { it.toDomainOrNull() }
     }
 
     override suspend fun savePredictions(predictions: List<Prediction>) {
         predictionDao.markAllStale()
-        predictionDao.insertAll(predictions.map { it.toEntity() })
+        if (predictions.isNotEmpty()) {
+            predictionDao.insertAll(predictions.map { it.toEntity() })
+        }
         predictionDao.deleteStalePredictions()
     }
 
@@ -49,24 +51,28 @@ class PredictionRepositoryImpl @Inject constructor(
         predictionDao.deleteAll()
     }
 
-    private fun PredictionEntity.toDomain(): Prediction = Prediction(
-        id = id,
-        cycleId = cycleId,
-        type = try { PredictionType.valueOf(type.uppercase()) } catch (_: Exception) { PredictionType.PERIOD_START },
-        predictedDate = DateUtils.fromIsoString(predictedDate),
-        confidence = confidence,
-        lowerBound = lowerBound?.let { DateUtils.fromIsoString(it) },
-        upperBound = upperBound?.let { DateUtils.fromIsoString(it) },
-        algorithmVersion = algorithmVersion,
-        isStale = isStale
-    )
+    private fun PredictionEntity.toDomainOrNull(): Prediction? {
+        val parsedType = PredictionType.fromNameOrNull(type) ?: return null
+        val parsedDate = DateUtils.fromIsoStringOrNull(predictedDate) ?: return null
+        return Prediction(
+            id = id,
+            cycleId = cycleId,
+            type = parsedType,
+            predictedDate = parsedDate,
+            confidence = confidence.coerceIn(0.0, 1.0),
+            lowerBound = lowerBound?.let { DateUtils.fromIsoStringOrNull(it) },
+            upperBound = upperBound?.let { DateUtils.fromIsoStringOrNull(it) },
+            algorithmVersion = algorithmVersion,
+            isStale = isStale
+        )
+    }
 
     private fun Prediction.toEntity(): PredictionEntity = PredictionEntity(
         id = id,
         cycleId = cycleId,
         type = type.name.lowercase(),
         predictedDate = DateUtils.toIsoString(predictedDate),
-        confidence = confidence,
+        confidence = confidence.coerceIn(0.0, 1.0),
         lowerBound = lowerBound?.let { DateUtils.toIsoString(it) },
         upperBound = upperBound?.let { DateUtils.toIsoString(it) },
         algorithmVersion = algorithmVersion,

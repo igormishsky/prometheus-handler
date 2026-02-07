@@ -30,7 +30,8 @@ data class SettingsState(
     val dailyLogReminder: Boolean = false,
     val isLoading: Boolean = true,
     val exportUri: Uri? = null,
-    val exportReady: Boolean = false
+    val exportReady: Boolean = false,
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -72,9 +73,7 @@ class SettingsViewModel @Inject constructor(
     fun cycleMode() {
         viewModelScope.launch {
             currentSettings?.let { settings ->
-                val modes = AppMode.entries
-                val currentIndex = modes.indexOf(settings.activeMode)
-                val nextMode = modes[(currentIndex + 1) % modes.size]
+                val nextMode = AppMode.next(settings.activeMode)
                 val updated = settings.copy(activeMode = nextMode)
                 settingsRepository.updateSettings(updated)
             }
@@ -83,19 +82,29 @@ class SettingsViewModel @Inject constructor(
 
     fun exportData(context: Context) {
         viewModelScope.launch {
-            val cycles = cycleRepository.getAllCyclesOnce()
-            val firstCycleDate = cycles.minOfOrNull { it.startDate } ?: LocalDate.now().minusYears(1)
-            val dailyLogs = dailyLogRepository.getByDateRange(firstCycleDate, LocalDate.now())
+            try {
+                val cycles = cycleRepository.getAllCyclesOnce()
+                val firstCycleDate = cycles.minOfOrNull { it.startDate } ?: LocalDate.now().minusYears(1)
+                val dailyLogs = dailyLogRepository.getByDateRange(firstCycleDate, LocalDate.now())
 
-            val uri = CsvExporter.exportCyclesToCsv(context, cycles, dailyLogs)
-            uri?.let {
-                _state.value = _state.value.copy(exportUri = it, exportReady = true)
+                val uri = CsvExporter.exportCyclesToCsv(context, cycles, dailyLogs)
+                if (uri != null) {
+                    _state.value = _state.value.copy(exportUri = uri, exportReady = true, error = null)
+                } else {
+                    _state.value = _state.value.copy(error = "Failed to export data")
+                }
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(error = "Failed to export data")
             }
         }
     }
 
     fun clearExportState() {
         _state.value = _state.value.copy(exportUri = null, exportReady = false)
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
     }
 
     fun toggleReminders(context: Context, enabled: Boolean) {
@@ -119,7 +128,6 @@ class SettingsViewModel @Inject constructor(
             }
         } else {
             reminderManager.cancelAllReminders(context)
-            // Re-enable cycle reminders if those are still on
             if (_state.value.remindersEnabled) {
                 reminderManager.createNotificationChannel(context)
             }
@@ -128,8 +136,12 @@ class SettingsViewModel @Inject constructor(
 
     fun deleteAllData() {
         viewModelScope.launch {
-            cycleRepository.deleteAllCycles()
-            predictionRepository.deleteAll()
+            try {
+                cycleRepository.deleteAllCycles()
+                predictionRepository.deleteAll()
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(error = "Failed to delete data")
+            }
         }
     }
 }

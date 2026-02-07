@@ -7,4 +7,13 @@ data class CustomTag(
     val color: String? = null,
     val icon: String? = null,
     val sortOrder: Int = 0
-)
+) {
+    val hasColor: Boolean
+        get() = !color.isNullOrBlank()
+
+    val hasIcon: Boolean
+        get() = !icon.isNullOrBlank()
+
+    val hasCategory: Boolean
+        get() = !category.isNullOrBlank()
+}

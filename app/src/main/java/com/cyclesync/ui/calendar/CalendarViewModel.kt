@@ -32,7 +32,8 @@ data class CalendarDay(
 data class CalendarState(
     val currentMonth: YearMonth = YearMonth.now(),
     val days: List<CalendarDay> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -73,12 +74,30 @@ class CalendarViewModel @Inject constructor(
         refreshDays()
     }
 
+    fun goToMonth(yearMonth: YearMonth) {
+        _currentMonth.value = yearMonth
+        refreshDays()
+    }
+
+    fun goToToday() {
+        _currentMonth.value = YearMonth.now()
+        refreshDays()
+    }
+
     private fun refreshDays() {
         viewModelScope.launch {
-            val cycles = cycleRepository.getAllCyclesOnce()
-            val predictions = predictionRepository.getActivePredictionsOnce()
-            _state.value = buildCalendarState(cycles, predictions)
+            try {
+                val cycles = cycleRepository.getAllCyclesOnce()
+                val predictions = predictionRepository.getActivePredictionsOnce()
+                _state.value = buildCalendarState(cycles, predictions)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(error = "Failed to load calendar data")
+            }
         }
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
     }
 
     private fun buildCalendarState(
@@ -88,55 +107,12 @@ class CalendarViewModel @Inject constructor(
         val month = _currentMonth.value
         val today = LocalDate.now()
         val firstDay = month.atDay(1)
-        val lastDay = month.atEndOfMonth()
 
-        val periodDates = mutableSetOf<LocalDate>()
-        cycles.forEach { cycle ->
-            val start = cycle.periodStartDate
-            val end = cycle.periodEndDate ?: start.plusDays((cycle.periodLength ?: 5).toLong() - 1)
-            var date = start
-            while (!date.isAfter(end)) {
-                periodDates.add(date)
-                date = date.plusDays(1)
-            }
-        }
-
-        val predictedPeriodDates = predictions
-            .filter { it.type == PredictionType.PERIOD_START }
-            .flatMap { pred ->
-                val endPred = predictions.find {
-                    it.type == PredictionType.PERIOD_END &&
-                    !it.predictedDate.isBefore(pred.predictedDate) &&
-                    it.predictedDate.isBefore(pred.predictedDate.plusDays(10))
-                }
-                val end = endPred?.predictedDate ?: pred.predictedDate.plusDays(4)
-                generateDateRange(pred.predictedDate, end)
-            }.toSet()
-
-        val fertileDates = predictions
-            .filter { it.type == PredictionType.FERTILE_START }
-            .flatMap { start ->
-                val end = predictions.find {
-                    it.type == PredictionType.FERTILE_END &&
-                    !it.predictedDate.isBefore(start.predictedDate)
-                }
-                if (end != null) generateDateRange(start.predictedDate, end.predictedDate) else emptyList()
-            }.toSet()
-
-        val ovulationDates = predictions
-            .filter { it.type == PredictionType.OVULATION }
-            .map { it.predictedDate }
-            .toSet()
-
-        val pmsDates = predictions
-            .filter { it.type == PredictionType.PMS_START }
-            .flatMap { start ->
-                val end = predictions.find {
-                    it.type == PredictionType.PMS_END &&
-                    !it.predictedDate.isBefore(start.predictedDate)
-                }
-                if (end != null) generateDateRange(start.predictedDate, end.predictedDate) else emptyList()
-            }.toSet()
+        val periodDates = buildPeriodDates(cycles)
+        val predictedPeriodDates = buildPredictedPeriodDates(predictions)
+        val fertileDates = buildDateRangeFromPredictions(predictions, PredictionType.FERTILE_START, PredictionType.FERTILE_END)
+        val ovulationDates = predictions.filter { it.type == PredictionType.OVULATION }.map { it.predictedDate }.toSet()
+        val pmsDates = buildDateRangeFromPredictions(predictions, PredictionType.PMS_START, PredictionType.PMS_END)
 
         val days = (0 until month.lengthOfMonth()).map { dayOffset ->
             val date = firstDay.plusDays(dayOffset.toLong())
@@ -158,13 +134,43 @@ class CalendarViewModel @Inject constructor(
         )
     }
 
-    private fun generateDateRange(start: LocalDate, end: LocalDate): List<LocalDate> {
-        val dates = mutableListOf<LocalDate>()
-        var current = start
-        while (!current.isAfter(end)) {
-            dates.add(current)
-            current = current.plusDays(1)
+    private fun buildPeriodDates(cycles: List<Cycle>): Set<LocalDate> {
+        val dates = mutableSetOf<LocalDate>()
+        cycles.forEach { cycle ->
+            val start = cycle.periodStartDate
+            val end = cycle.effectivePeriodEnd
+            DateUtils.generateDateRange(start, end).forEach { dates.add(it) }
         }
         return dates
+    }
+
+    private fun buildPredictedPeriodDates(predictions: List<Prediction>): Set<LocalDate> {
+        return predictions
+            .filter { it.type == PredictionType.PERIOD_START }
+            .flatMap { pred ->
+                val endPred = predictions.find {
+                    it.type == PredictionType.PERIOD_END &&
+                    !it.predictedDate.isBefore(pred.predictedDate) &&
+                    it.predictedDate.isBefore(pred.predictedDate.plusDays(10))
+                }
+                val end = endPred?.predictedDate ?: pred.predictedDate.plusDays(4)
+                DateUtils.generateDateRange(pred.predictedDate, end)
+            }.toSet()
+    }
+
+    private fun buildDateRangeFromPredictions(
+        predictions: List<Prediction>,
+        startType: PredictionType,
+        endType: PredictionType
+    ): Set<LocalDate> {
+        return predictions
+            .filter { it.type == startType }
+            .flatMap { start ->
+                val end = predictions.find {
+                    it.type == endType &&
+                    !it.predictedDate.isBefore(start.predictedDate)
+                }
+                if (end != null) DateUtils.generateDateRange(start.predictedDate, end.predictedDate) else emptyList()
+            }.toSet()
     }
 }

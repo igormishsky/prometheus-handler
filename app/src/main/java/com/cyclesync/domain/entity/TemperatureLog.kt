@@ -11,11 +11,31 @@ data class TemperatureLog(
     val method: TemperatureMethod = TemperatureMethod.ORAL,
     val isFlagged: Boolean = false,
     val dailyLogId: String? = null
-)
+) {
+    val temperatureFahrenheit: Double
+        get() = temperature * 9.0 / 5.0 + 32.0
+
+    val isInNormalRange: Boolean
+        get() = temperature in 35.5..37.8
+
+    val isElevated: Boolean
+        get() = temperature > 37.0
+}
 
 enum class TemperatureMethod(val displayName: String) {
     ORAL("Oral"),
     VAGINAL("Vaginal"),
     WEARABLE("Wearable"),
-    EAR("Ear")
+    EAR("Ear");
+
+    companion object {
+        fun fromNameOrNull(name: String?): TemperatureMethod? {
+            if (name.isNullOrBlank()) return null
+            return try {
+                valueOf(name.uppercase())
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
+    }
 }

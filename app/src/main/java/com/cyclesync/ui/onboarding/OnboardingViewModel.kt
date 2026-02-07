@@ -2,7 +2,7 @@ package com.cyclesync.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cyclesync.core.utils.DateUtils
+import com.cyclesync.core.utils.CycleCalculator
 import com.cyclesync.core.utils.UuidGenerator
 import com.cyclesync.domain.entity.AppMode
 import com.cyclesync.domain.entity.BmiCategory
@@ -31,6 +31,12 @@ class OnboardingViewModel @Inject constructor(
     private val predictionEngine: PredictionEngine
 ) : ViewModel() {
 
+    companion object {
+        const val TOTAL_STEPS = 6
+        const val MIN_BIRTH_YEAR = 1940
+        const val MAX_BIRTH_YEAR_OFFSET = 10
+    }
+
     val isOnboardingCompleted: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it?.onboardingCompleted ?: false }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -56,51 +62,74 @@ class OnboardingViewModel @Inject constructor(
     private val _selectedMode = MutableStateFlow(AppMode.PERIOD_TRACKING)
     val selectedMode: StateFlow<AppMode> = _selectedMode.asStateFlow()
 
+    private val _isCompleting = MutableStateFlow(false)
+    val isCompleting: StateFlow<Boolean> = _isCompleting.asStateFlow()
+
     fun nextStep() {
-        _currentStep.value = (_currentStep.value + 1).coerceAtMost(5)
+        _currentStep.value = (_currentStep.value + 1).coerceAtMost(TOTAL_STEPS - 1)
     }
 
     fun previousStep() {
         _currentStep.value = (_currentStep.value - 1).coerceAtLeast(0)
     }
 
-    fun setBirthYear(year: Int?) { _birthYear.value = year }
-    fun setCycleLength(length: Int) { _cycleLength.value = length }
-    fun setPeriodLength(length: Int) { _periodLength.value = length }
+    fun setBirthYear(year: Int?) {
+        val maxYear = LocalDate.now().year - MAX_BIRTH_YEAR_OFFSET
+        _birthYear.value = year?.coerceIn(MIN_BIRTH_YEAR, maxYear)
+    }
+
+    fun setCycleLength(length: Int) {
+        _cycleLength.value = length.coerceIn(CycleCalculator.MIN_CYCLE_LENGTH, CycleCalculator.MAX_CYCLE_LENGTH)
+    }
+
+    fun setPeriodLength(length: Int) {
+        _periodLength.value = length.coerceIn(CycleCalculator.MIN_PERIOD_LENGTH, CycleCalculator.MAX_PERIOD_LENGTH)
+    }
+
     fun setBmiCategory(category: BmiCategory?) { _bmiCategory.value = category }
-    fun setLastPeriodDate(date: LocalDate?) { _lastPeriodDate.value = date }
+
+    fun setLastPeriodDate(date: LocalDate?) {
+        if (date != null && date.isAfter(LocalDate.now())) return
+        _lastPeriodDate.value = date
+    }
+
     fun setSelectedMode(mode: AppMode) { _selectedMode.value = mode }
 
     fun completeOnboarding() {
+        if (_isCompleting.value) return
+        _isCompleting.value = true
+
         viewModelScope.launch {
-            val settings = Settings(
-                activeMode = _selectedMode.value,
-                birthYear = _birthYear.value,
-                bmiCategory = _bmiCategory.value,
-                typicalCycleLength = _cycleLength.value,
-                typicalPeriodLength = _periodLength.value,
-                firstLaunchDate = LocalDate.now(),
-                onboardingCompleted = true
-            )
-            settingsRepository.saveSettings(settings)
-
-            // Create first cycle if last period date provided
-            _lastPeriodDate.value?.let { periodDate ->
-                val cycle = Cycle(
-                    id = UuidGenerator.generate(),
-                    cycleNumber = 1,
-                    startDate = periodDate,
-                    periodStartDate = periodDate
+            try {
+                val settings = Settings(
+                    activeMode = _selectedMode.value,
+                    birthYear = _birthYear.value,
+                    bmiCategory = _bmiCategory.value,
+                    typicalCycleLength = _cycleLength.value,
+                    typicalPeriodLength = _periodLength.value,
+                    firstLaunchDate = LocalDate.now(),
+                    onboardingCompleted = true
                 )
-                cycleRepository.insertCycle(cycle)
+                settingsRepository.saveSettings(settings)
 
-                // Generate initial predictions
-                val predictions = predictionEngine.generatePredictions(
-                    cycles = listOf(cycle),
-                    userAge = _birthYear.value?.let { LocalDate.now().year - it },
-                    userBmi = _bmiCategory.value?.name?.lowercase()
-                )
-                predictionRepository.savePredictions(predictions)
+                _lastPeriodDate.value?.let { periodDate ->
+                    val cycle = Cycle(
+                        id = UuidGenerator.generate(),
+                        cycleNumber = 1,
+                        startDate = periodDate,
+                        periodStartDate = periodDate
+                    )
+                    cycleRepository.insertCycle(cycle)
+
+                    val predictions = predictionEngine.generatePredictions(
+                        cycles = listOf(cycle),
+                        userAge = _birthYear.value?.let { LocalDate.now().year - it },
+                        userBmi = _bmiCategory.value?.name?.lowercase()
+                    )
+                    predictionRepository.savePredictions(predictions)
+                }
+            } finally {
+                _isCompleting.value = false
             }
         }
     }

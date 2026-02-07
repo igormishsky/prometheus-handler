@@ -14,7 +14,22 @@ data class Medication(
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
     val isActive: Boolean = true
-)
+) {
+    val isCurrentlyActive: Boolean
+        get() {
+            if (!isActive) return false
+            val today = LocalDate.now()
+            val afterStart = startDate?.let { !today.isBefore(it) } ?: true
+            val beforeEnd = endDate?.let { !today.isAfter(it) } ?: true
+            return afterStart && beforeEnd
+        }
+
+    val hasDosage: Boolean
+        get() = !dosage.isNullOrBlank()
+
+    val hasDateRange: Boolean
+        get() = startDate != null || endDate != null
+}
 
 enum class MedicationType(val displayName: String) {
     BIRTH_CONTROL_PILL("Birth Control Pill"),
@@ -42,6 +57,17 @@ data class MedicationLog(
     val status: MedicationStatus,
     val timeTaken: LocalTime? = null,
     val notes: String? = null
-)
+) {
+    val wasTaken: Boolean
+        get() = status == MedicationStatus.TAKEN || status == MedicationStatus.LATE
 
-enum class MedicationStatus { TAKEN, MISSED, LATE, SKIPPED }
+    val wasMissed: Boolean
+        get() = status == MedicationStatus.MISSED
+}
+
+enum class MedicationStatus(val displayName: String) {
+    TAKEN("Taken"),
+    MISSED("Missed"),
+    LATE("Late"),
+    SKIPPED("Skipped")
+}

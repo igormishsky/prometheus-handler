@@ -3,6 +3,7 @@ package com.cyclesync.ui.analysis
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyclesync.core.utils.CycleCalculator
+import com.cyclesync.domain.entity.Cycle
 import com.cyclesync.domain.entity.CycleAnalysis
 import com.cyclesync.domain.entity.TrackingCategory
 import com.cyclesync.domain.entity.Trend
@@ -39,7 +40,8 @@ data class AnalysisState(
     val hasCycles: Boolean = false,
     val symptomPatterns: List<SymptomFrequency> = emptyList(),
     val cycleSummaries: List<CycleSummary> = emptyList(),
-    val totalTrackedDays: Int = 0
+    val totalTrackedDays: Int = 0,
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -53,6 +55,10 @@ class AnalysisViewModel @Inject constructor(
 
     init {
         loadAnalysis()
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
     }
 
     private fun loadAnalysis() {
@@ -76,73 +82,18 @@ class AnalysisViewModel @Inject constructor(
                 val sd = CycleCalculator.calculateStandardDeviation(cycleLengths)
                 val regularity = CycleCalculator.calculateRegularityScore(cycleLengths)
 
-                val trend = if (cycleLengths.size >= 6) {
-                    val recent = cycleLengths.takeLast(6)
-                    val slope = calculateSlope(recent)
-                    when {
-                        slope > 0.3 -> Trend.LENGTHENING
-                        slope < -0.3 -> Trend.SHORTENING
-                        else -> Trend.STABLE
-                    }
-                } else Trend.STABLE
+                val trend = calculateTrend(cycleLengths)
 
-                // Load symptom patterns across all cycles
                 val firstDate = cycles.minOf { it.startDate }
-                val allLogs = dailyLogRepository.getByDateRange(firstDate, LocalDate.now())
+                val allLogs = try {
+                    dailyLogRepository.getByDateRange(firstDate, LocalDate.now())
+                } catch (_: Exception) {
+                    emptyList()
+                }
                 val totalDays = allLogs.size
 
-                val symptomCounts = mutableMapOf<String, Int>()
-                allLogs.forEach { log ->
-                    log.entries.forEach { entry ->
-                        if (entry.category != TrackingCategory.BLEEDING) {
-                            val key = "${entry.category.displayName}|${entry.subcategory}"
-                            symptomCounts[key] = (symptomCounts[key] ?: 0) + 1
-                        }
-                    }
-                }
-
-                val symptomPatterns = symptomCounts.entries
-                    .sortedByDescending { it.value }
-                    .take(15)
-                    .map { (key, count) ->
-                        val parts = key.split("|")
-                        SymptomFrequency(
-                            category = parts[0],
-                            subcategory = parts.getOrElse(1) { "" }.replace("_", " "),
-                            count = count,
-                            percentage = if (totalDays > 0) (count.toDouble() / totalDays) * 100 else 0.0
-                        )
-                    }
-
-                // Build cycle summaries
-                val cycleSummaries = cycles
-                    .sortedByDescending { it.startDate }
-                    .take(6)
-                    .map { cycle ->
-                        val cycleLogs = try {
-                            dailyLogRepository.getByCycleId(cycle.id)
-                        } catch (_: Exception) {
-                            emptyList()
-                        }
-                        val topSymptoms = cycleLogs
-                            .flatMap { it.entries }
-                            .filter { it.category != TrackingCategory.BLEEDING }
-                            .groupBy { it.subcategory.replace("_", " ") }
-                            .entries
-                            .sortedByDescending { it.value.size }
-                            .take(3)
-                            .map { it.key }
-
-                        CycleSummary(
-                            cycleNumber = cycle.cycleNumber,
-                            startDate = cycle.startDate,
-                            endDate = cycle.endDate,
-                            cycleLength = cycle.cycleLength,
-                            periodLength = cycle.periodLength,
-                            topSymptoms = topSymptoms,
-                            notes = cycle.notes
-                        )
-                    }
+                val symptomPatterns = buildSymptomPatterns(allLogs, totalDays)
+                val cycleSummaries = buildCycleSummaries(cycles)
 
                 _state.value = AnalysisState(
                     analysis = CycleAnalysis(
@@ -152,7 +103,7 @@ class AnalysisViewModel @Inject constructor(
                         longestCycle = cycleLengths.max(),
                         shortestCycle = cycleLengths.min(),
                         totalCyclesTracked = cycles.size,
-                        currentStreak = calculateStreak(cycles),
+                        currentStreak = CycleCalculator.calculateConsecutiveCycleStreak(cycles),
                         regularityScore = regularity,
                         cycleLengthTrend = trend,
                         cycleLengths = cycleLengths
@@ -167,6 +118,76 @@ class AnalysisViewModel @Inject constructor(
         }
     }
 
+    private fun calculateTrend(cycleLengths: List<Int>): Trend {
+        if (cycleLengths.size < 6) return Trend.STABLE
+        val recent = cycleLengths.takeLast(6)
+        val slope = calculateSlope(recent)
+        return when {
+            slope > 0.3 -> Trend.LENGTHENING
+            slope < -0.3 -> Trend.SHORTENING
+            else -> Trend.STABLE
+        }
+    }
+
+    private fun buildSymptomPatterns(
+        allLogs: List<com.cyclesync.domain.entity.DailyLog>,
+        totalDays: Int
+    ): List<SymptomFrequency> {
+        val symptomCounts = mutableMapOf<String, Int>()
+        allLogs.forEach { log ->
+            log.entries.forEach { entry ->
+                if (entry.category != TrackingCategory.BLEEDING) {
+                    val key = "${entry.category.displayName}|${entry.subcategory}"
+                    symptomCounts[key] = (symptomCounts[key] ?: 0) + 1
+                }
+            }
+        }
+
+        return symptomCounts.entries
+            .sortedByDescending { it.value }
+            .take(15)
+            .map { (key, count) ->
+                val parts = key.split("|")
+                SymptomFrequency(
+                    category = parts[0],
+                    subcategory = parts.getOrElse(1) { "" }.replace("_", " "),
+                    count = count,
+                    percentage = if (totalDays > 0) (count.toDouble() / totalDays) * 100 else 0.0
+                )
+            }
+    }
+
+    private fun buildCycleSummaries(cycles: List<Cycle>): List<CycleSummary> {
+        return cycles
+            .sortedByDescending { it.startDate }
+            .take(6)
+            .map { cycle ->
+                val cycleLogs = try {
+                    dailyLogRepository.getByCycleId(cycle.id)
+                } catch (_: Exception) {
+                    emptyList()
+                }
+                val topSymptoms = cycleLogs
+                    .flatMap { it.entries }
+                    .filter { it.category != TrackingCategory.BLEEDING }
+                    .groupBy { it.subcategory.replace("_", " ") }
+                    .entries
+                    .sortedByDescending { it.value.size }
+                    .take(3)
+                    .map { it.key }
+
+                CycleSummary(
+                    cycleNumber = cycle.cycleNumber,
+                    startDate = cycle.startDate,
+                    endDate = cycle.endDate,
+                    cycleLength = cycle.cycleLength,
+                    periodLength = cycle.periodLength,
+                    topSymptoms = topSymptoms,
+                    notes = cycle.notes
+                )
+            }
+    }
+
     private fun calculateSlope(values: List<Int>): Double {
         val n = values.size
         if (n < 2) return 0.0
@@ -179,22 +200,5 @@ class AnalysisViewModel @Inject constructor(
             den += (i - xMean) * (i - xMean)
         }
         return if (den != 0.0) num / den else 0.0
-    }
-
-    private fun calculateStreak(cycles: List<com.cyclesync.domain.entity.Cycle>): Int {
-        if (cycles.isEmpty()) return 0
-        val sorted = cycles.sortedByDescending { it.startDate }
-        var streak = 1
-        for (i in 0 until sorted.size - 1) {
-            val current = sorted[i]
-            val next = sorted[i + 1]
-            val daysBetween = java.time.temporal.ChronoUnit.DAYS.between(next.startDate, current.startDate)
-            if (daysBetween <= 45) {
-                streak++
-            } else {
-                break
-            }
-        }
-        return streak
     }
 }

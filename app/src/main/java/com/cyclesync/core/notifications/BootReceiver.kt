@@ -6,12 +6,13 @@ import android.content.Intent
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            // Re-create the notification channel after boot
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+
+        try {
             val reminderManager = ReminderManager()
             reminderManager.createNotificationChannel(context)
-            // Daily log reminder is re-scheduled; cycle-specific reminders
-            // will be re-scheduled when the app is next opened and predictions are loaded
+        } catch (_: Exception) {
+            // Prevent boot receiver from crashing the app
         }
     }
 }

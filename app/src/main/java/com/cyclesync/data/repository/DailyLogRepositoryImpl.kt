@@ -5,7 +5,6 @@ import com.cyclesync.core.database.dao.TrackingEntryDao
 import com.cyclesync.core.database.entity.DailyLogEntity
 import com.cyclesync.core.database.entity.TrackingEntryEntity
 import com.cyclesync.core.utils.DateUtils
-import com.cyclesync.core.utils.UuidGenerator
 import com.cyclesync.domain.entity.DailyLog
 import com.cyclesync.domain.entity.TrackingCategory
 import com.cyclesync.domain.entity.TrackingEntry
@@ -24,14 +23,14 @@ class DailyLogRepositoryImpl @Inject constructor(
 
     override suspend fun getByDate(date: LocalDate): DailyLog? {
         val entity = dailyLogDao.getByDate(DateUtils.toIsoString(date)) ?: return null
-        val entries = trackingEntryDao.getByLogId(entity.id).map { it.toDomain() }
+        val entries = trackingEntryDao.getByLogId(entity.id).mapNotNull { it.toDomainOrNull() }
         return entity.toDomain(entries)
     }
 
     override fun getByDateFlow(date: LocalDate): Flow<DailyLog?> {
         return dailyLogDao.getByDateFlow(DateUtils.toIsoString(date)).map { entity ->
             entity?.let {
-                val entries = trackingEntryDao.getByLogId(it.id).map { e -> e.toDomain() }
+                val entries = trackingEntryDao.getByLogId(it.id).mapNotNull { e -> e.toDomainOrNull() }
                 it.toDomain(entries)
             }
         }
@@ -39,7 +38,7 @@ class DailyLogRepositoryImpl @Inject constructor(
 
     override suspend fun getByCycleId(cycleId: String): List<DailyLog> {
         return dailyLogDao.getByCycleId(cycleId).map { entity ->
-            val entries = trackingEntryDao.getByLogId(entity.id).map { it.toDomain() }
+            val entries = trackingEntryDao.getByLogId(entity.id).mapNotNull { it.toDomainOrNull() }
             entity.toDomain(entries)
         }
     }
@@ -49,7 +48,7 @@ class DailyLogRepositoryImpl @Inject constructor(
             DateUtils.toIsoString(startDate),
             DateUtils.toIsoString(endDate)
         ).map { entity ->
-            val entries = trackingEntryDao.getByLogId(entity.id).map { it.toDomain() }
+            val entries = trackingEntryDao.getByLogId(entity.id).mapNotNull { it.toDomainOrNull() }
             entity.toDomain(entries)
         }
     }
@@ -60,7 +59,7 @@ class DailyLogRepositoryImpl @Inject constructor(
             DateUtils.toIsoString(endDate)
         ).map { entities ->
             entities.map { entity ->
-                val entries = trackingEntryDao.getByLogId(entity.id).map { it.toDomain() }
+                val entries = trackingEntryDao.getByLogId(entity.id).mapNotNull { it.toDomainOrNull() }
                 entity.toDomain(entries)
             }
         }
@@ -74,7 +73,7 @@ class DailyLogRepositoryImpl @Inject constructor(
                 date = DateUtils.toIsoString(log.date),
                 cycleId = log.cycleId,
                 cycleDay = log.cycleDay,
-                notes = log.notes,
+                notes = log.notes?.take(5000),
                 createdAt = now,
                 updatedAt = now
             )
@@ -95,11 +94,13 @@ class DailyLogRepositoryImpl @Inject constructor(
 
     override suspend fun saveTrackingEntries(logId: String, entries: List<TrackingEntry>) {
         trackingEntryDao.deleteByLogId(logId)
-        trackingEntryDao.insertAll(entries.map { it.toEntity() })
+        if (entries.isNotEmpty()) {
+            trackingEntryDao.insertAll(entries.map { it.toEntity() })
+        }
     }
 
     override suspend fun getTrackingEntries(logId: String): List<TrackingEntry> {
-        return trackingEntryDao.getByLogId(logId).map { it.toDomain() }
+        return trackingEntryDao.getByLogId(logId).mapNotNull { it.toDomainOrNull() }
     }
 
     private fun DailyLogEntity.toDomain(entries: List<TrackingEntry> = emptyList()): DailyLog = DailyLog(
@@ -111,14 +112,21 @@ class DailyLogRepositoryImpl @Inject constructor(
         entries = entries
     )
 
-    private fun TrackingEntryEntity.toDomain(): TrackingEntry = TrackingEntry(
-        id = id,
-        dailyLogId = dailyLogId,
-        category = try { TrackingCategory.valueOf(category.uppercase()) } catch (_: Exception) { TrackingCategory.BLEEDING },
-        subcategory = subcategory,
-        intensity = intensity,
-        customValue = customValue
-    )
+    private fun TrackingEntryEntity.toDomainOrNull(): TrackingEntry? {
+        val parsedCategory = try {
+            TrackingCategory.valueOf(category.uppercase())
+        } catch (_: IllegalArgumentException) {
+            return null
+        }
+        return TrackingEntry(
+            id = id,
+            dailyLogId = dailyLogId,
+            category = parsedCategory,
+            subcategory = subcategory,
+            intensity = intensity?.coerceIn(0, 10),
+            customValue = customValue
+        )
+    }
 
     private fun TrackingEntry.toEntity(): TrackingEntryEntity = TrackingEntryEntity(
         id = id,

@@ -18,19 +18,78 @@ data class Settings(
     val lastBackupDate: LocalDate? = null,
     val onboardingCompleted: Boolean = false,
     val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.HIGH
-)
+) {
+    val currentAge: Int?
+        get() = birthYear?.let { LocalDate.now().year - it }
+
+    val hasBiometricProtection: Boolean
+        get() = !pinHash.isNullOrBlank()
+
+    val isConceiveMode: Boolean
+        get() = activeMode == AppMode.CONCEIVE
+
+    val isPregnancyMode: Boolean
+        get() = activeMode == AppMode.PREGNANCY
+
+    val isPerimenopauseMode: Boolean
+        get() = activeMode == AppMode.PERIMENOPAUSE
+
+    val bmiCategoryName: String?
+        get() = bmiCategory?.name?.lowercase()
+
+    val usesCelsius: Boolean
+        get() = unitsTemp == "celsius"
+
+    val usesKg: Boolean
+        get() = unitsWeight == "kg"
+}
 
 enum class BmiCategory(val displayName: String) {
     UNDERWEIGHT("Underweight"),
     NORMAL("Normal"),
     OVERWEIGHT("Overweight"),
-    OBESE("Obese")
+    OBESE("Obese");
+
+    companion object {
+        fun fromNameOrNull(name: String?): BmiCategory? {
+            if (name.isNullOrBlank()) return null
+            return try {
+                valueOf(name.uppercase())
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
+    }
 }
 
-enum class AppTheme { SYSTEM, LIGHT, DARK }
+enum class AppTheme {
+    SYSTEM, LIGHT, DARK;
+
+    companion object {
+        fun fromNameOrNull(name: String?): AppTheme? {
+            if (name.isNullOrBlank()) return null
+            return try {
+                valueOf(name.uppercase())
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
+    }
+}
 
 enum class NotificationPrivacy(val displayName: String) {
-    HIGH("High — No details"),
-    MEDIUM("Medium — Vague"),
-    LOW("Low — Full detail")
+    HIGH("High \u2014 No details"),
+    MEDIUM("Medium \u2014 Vague"),
+    LOW("Low \u2014 Full detail");
+
+    companion object {
+        fun fromNameOrNull(name: String?): NotificationPrivacy? {
+            if (name.isNullOrBlank()) return null
+            return try {
+                valueOf(name.uppercase())
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+        }
+    }
 }

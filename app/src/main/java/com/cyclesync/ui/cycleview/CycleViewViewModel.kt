@@ -46,7 +46,8 @@ data class CycleViewState(
     val phaseSuperpower: String = "",
     val bodyInsight: String = "",
     val streakDays: Int = 0,
-    val streakMessage: String = ""
+    val streakMessage: String = "",
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -205,16 +206,27 @@ class CycleViewViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
-            combine(
-                cycleRepository.getCurrentCycleFlow(),
-                predictionRepository.getActivePredictions(),
-                settingsRepository.getSettings()
-            ) { currentCycle, predictions, settings ->
-                buildState(currentCycle, predictions, settings)
-            }.collect { newState ->
-                _state.value = newState
+            try {
+                combine(
+                    cycleRepository.getCurrentCycleFlow(),
+                    predictionRepository.getActivePredictions(),
+                    settingsRepository.getSettings()
+                ) { currentCycle, predictions, settings ->
+                    buildState(currentCycle, predictions, settings)
+                }.collect { newState ->
+                    _state.value = newState
+                }
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Failed to load cycle data"
+                )
             }
         }
+    }
+
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
     }
 
     private fun getAffirmationForToday(): String {

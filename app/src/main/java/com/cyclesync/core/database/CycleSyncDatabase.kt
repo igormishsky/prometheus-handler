@@ -40,7 +40,7 @@ import com.cyclesync.core.database.entity.TrackingEntryEntity
         AlgorithmStateEntity::class
     ],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class CycleSyncDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
@@ -50,4 +50,8 @@ abstract class CycleSyncDatabase : RoomDatabase() {
     abstract fun predictionDao(): PredictionDao
     abstract fun temperatureLogDao(): TemperatureLogDao
     abstract fun algorithmStateDao(): AlgorithmStateDao
+
+    companion object {
+        const val DATABASE_NAME = "cyclesync.db"
+    }
 }
