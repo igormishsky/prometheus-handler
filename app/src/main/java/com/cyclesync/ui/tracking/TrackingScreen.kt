@@ -261,6 +261,49 @@ fun TrackingScreen(
                 onToggle = { viewModel.toggleEntry(TrackingCategory.STOOL, it) }
             )
 
+            // Self-Care Activities
+            TrackingSection(
+                title = "Self Care Activities",
+                items = TrackingSubcategories.selfCare["activities"] ?: emptyList(),
+                category = TrackingCategory.SELF_CARE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.SELF_CARE, it) }
+            )
+
+            TrackingSection(
+                title = "Pampering",
+                items = TrackingSubcategories.selfCare["pampering"] ?: emptyList(),
+                category = TrackingCategory.SELF_CARE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.SELF_CARE, it) }
+            )
+
+            // Hydration
+            TrackingSection(
+                title = "Water Intake (glasses)",
+                items = TrackingSubcategories.hydration["glasses"] ?: emptyList(),
+                category = TrackingCategory.HYDRATION,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.HYDRATION, it) }
+            )
+
+            TrackingSection(
+                title = "Beverages",
+                items = TrackingSubcategories.hydration["beverages"] ?: emptyList(),
+                category = TrackingCategory.HYDRATION,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.HYDRATION, it) }
+            )
+
+            // Gratitude
+            TrackingSection(
+                title = "Gratitude",
+                items = TrackingSubcategories.gratitude,
+                category = TrackingCategory.GRATITUDE,
+                selectedEntries = state.entries,
+                onToggle = { viewModel.toggleEntry(TrackingCategory.GRATITUDE, it) }
+            )
+
             // Notes
             Spacer(modifier = Modifier.height(16.dp))
             Text("Notes", style = MaterialTheme.typography.titleMedium)

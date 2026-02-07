@@ -353,5 +353,150 @@ private fun getBundledArticles(): List<ContentArticle> = listOf(
                 body = "Treatment depends on symptoms and goals. Options include lifestyle changes (diet, exercise), hormonal birth control, anti-androgen medications, and fertility treatments if trying to conceive."
             )
         )
+    ),
+    ContentArticle(
+        id = "self_care_by_phase",
+        title = "Self-Care by Cycle Phase",
+        subtitle = "Tailor your wellness routine to your hormonal rhythm",
+        category = "wellness",
+        readingTimeMinutes = 6,
+        sections = listOf(
+            ContentSection(
+                heading = "Why Phase-Based Self-Care?",
+                body = "Your hormones fluctuate throughout your cycle, affecting your energy, mood, skin, and needs. By aligning your self-care practices with your cycle phase, you can work with your body instead of against it."
+            ),
+            ContentSection(
+                heading = "Menstruation: Rest & Restore",
+                body = "Prioritize rest, warmth, and nourishment. Try gentle yoga or stretching, warm baths with Epsom salts, journaling, and comfort foods rich in iron. This is your time to slow down and recharge. Face masks and cozy blankets are your best friends."
+            ),
+            ContentSection(
+                heading = "Follicular: Explore & Create",
+                body = "Energy is rising and so is your creativity. Try new workouts, start projects, experiment with new skincare products, or plan social activities. Your skin tends to be at its best, so it's a great time for lighter moisturizers and gentle exfoliation."
+            ),
+            ContentSection(
+                heading = "Ovulation: Shine & Connect",
+                body = "You're at peak energy and confidence. This is the best time for challenging workouts, important meetings, date nights, and social events. Your skin may glow naturally. Embrace this phase of radiance and connection."
+            ),
+            ContentSection(
+                heading = "Luteal & PMS: Nurture & Soothe",
+                body = "As progesterone rises and then drops, focus on calming activities. Meditation, aromatherapy, warm herbal teas, hydrating face masks, and gentle movement like walking or swimming are ideal. Be extra kind to yourself and honor your need for comfort."
+            )
+        )
+    ),
+    ContentArticle(
+        id = "hydration_health",
+        title = "Hydration & Your Cycle",
+        subtitle = "Why water intake matters throughout your menstrual cycle",
+        category = "wellness",
+        readingTimeMinutes = 4,
+        sections = listOf(
+            ContentSection(
+                heading = "Why Hydration Matters",
+                body = "Water is essential for every bodily function, including hormone transport, nutrient delivery, and waste removal. During your menstrual cycle, your hydration needs change with your hormones."
+            ),
+            ContentSection(
+                heading = "During Menstruation",
+                body = "You lose fluid along with blood during your period. Increase your water intake and consider warm beverages like herbal tea or ginger tea to ease cramps and stay hydrated. Aim for at least 8 glasses per day."
+            ),
+            ContentSection(
+                heading = "Follicular & Ovulation Phases",
+                body = "Rising estrogen can increase your body's need for water. If you're exercising more during these high-energy phases, make sure to hydrate before, during, and after workouts. Coconut water is a great natural electrolyte source."
+            ),
+            ContentSection(
+                heading = "Luteal Phase",
+                body = "Progesterone can cause water retention and bloating. Paradoxically, drinking more water helps reduce bloating by signaling your body to release retained fluid. Limit caffeine and salty foods that worsen water retention."
+            ),
+            ContentSection(
+                heading = "Hydrating Foods",
+                body = "Cucumbers, watermelon, berries, oranges, lettuce, and celery are all over 90% water. Incorporating these into your diet is a delicious way to boost hydration alongside drinking water."
+            )
+        )
+    ),
+    ContentArticle(
+        id = "skincare_cycle",
+        title = "Skincare Through Your Cycle",
+        subtitle = "How hormones affect your skin and how to adapt",
+        category = "wellness",
+        readingTimeMinutes = 5,
+        sections = listOf(
+            ContentSection(
+                heading = "The Hormone-Skin Connection",
+                body = "Your skin changes throughout your menstrual cycle due to fluctuating estrogen, progesterone, and testosterone levels. Understanding these changes helps you choose the right products at the right time."
+            ),
+            ContentSection(
+                heading = "Menstruation (Days 1-5)",
+                body = "Skin may be dry, dull, and sensitive as hormone levels are at their lowest. Focus on hydration: use rich moisturizers, gentle cleansers, and soothing ingredients like hyaluronic acid and aloe vera. Avoid harsh treatments."
+            ),
+            ContentSection(
+                heading = "Follicular Phase (Days 6-13)",
+                body = "Rising estrogen boosts collagen production and gives skin a natural glow. This is the best time for exfoliation, trying new products, and professional treatments like facials or chemical peels. Your skin is more resilient now."
+            ),
+            ContentSection(
+                heading = "Ovulation (Day ~14)",
+                body = "Estrogen peaks and skin looks its best \u2014 plump, glowing, and clear. Minimal skincare is needed. Focus on sun protection and light hydration. This is when you'll look and feel most radiant."
+            ),
+            ContentSection(
+                heading = "Luteal Phase (Days 15-28)",
+                body = "Rising progesterone increases oil production, potentially leading to breakouts. Switch to oil-free products, use salicylic acid or niacinamide to prevent acne, and don't skip cleansing. Clay masks can help control excess oil."
+            )
+        )
+    ),
+    ContentArticle(
+        id = "meditation_mindfulness",
+        title = "Meditation & Mindfulness for Women",
+        subtitle = "Simple practices to support your emotional well-being",
+        category = "wellness",
+        readingTimeMinutes = 5,
+        sections = listOf(
+            ContentSection(
+                heading = "Why Meditation Helps",
+                body = "Research shows that regular meditation can reduce PMS symptoms, lower cortisol levels, improve sleep quality, and enhance emotional regulation. Even 5 minutes a day can make a meaningful difference in how you feel throughout your cycle."
+            ),
+            ContentSection(
+                heading = "Breathing Exercises",
+                body = "Try the 4-7-8 technique: inhale for 4 counts, hold for 7, exhale for 8. This activates your parasympathetic nervous system and can ease cramps, anxiety, and tension. Practice it before bed or during stressful moments."
+            ),
+            ContentSection(
+                heading = "Body Scan Meditation",
+                body = "Lie down comfortably and slowly bring attention to each part of your body, from toes to head. Notice any tension or discomfort without judgment. This practice is especially helpful during menstruation for connecting with and honoring your body."
+            ),
+            ContentSection(
+                heading = "Gratitude Journaling",
+                body = "Each evening, write down three things you're grateful for. This simple practice has been shown to improve mood, sleep, and overall well-being. During your luteal phase when mood may dip, gratitude journaling can be a powerful tool."
+            ),
+            ContentSection(
+                heading = "Movement Meditation",
+                body = "Not all meditation requires sitting still. Gentle yoga, walking in nature, or even stretching with intentional breathing counts as mindful movement. These practices are perfect for any cycle phase and help connect mind and body."
+            )
+        )
+    ),
+    ContentArticle(
+        id = "nutrition_cycle",
+        title = "Nutrition by Cycle Phase",
+        subtitle = "Eat in sync with your hormones for better well-being",
+        category = "wellness",
+        readingTimeMinutes = 6,
+        sections = listOf(
+            ContentSection(
+                heading = "Cycle Syncing Your Diet",
+                body = "Just as your energy and mood shift throughout your cycle, your nutritional needs change too. Eating in alignment with your hormonal phases can help reduce PMS, boost energy, and support overall health."
+            ),
+            ContentSection(
+                heading = "Menstruation: Replenish",
+                body = "Focus on iron-rich foods (spinach, lentils, red meat, dark chocolate), anti-inflammatory foods (turmeric, ginger, fatty fish), and warming foods (soups, stews). Magnesium-rich foods like nuts and seeds help ease cramps."
+            ),
+            ContentSection(
+                heading = "Follicular: Energize",
+                body = "Support rising energy with light, fresh foods: salads, fermented foods (kimchi, yogurt), lean proteins, and sprouted grains. This phase favors lighter meals that support your body's increasing activity level."
+            ),
+            ContentSection(
+                heading = "Ovulation: Fuel",
+                body = "Your metabolism may slightly increase. Focus on fiber-rich vegetables, whole grains, and antioxidant-rich fruits like berries. Raw foods and smoothies are especially satisfying during this high-energy phase."
+            ),
+            ContentSection(
+                heading = "Luteal: Comfort & Balance",
+                body = "Cravings are real and valid! Complex carbohydrates (sweet potatoes, brown rice, oats) help boost serotonin. B-vitamins from leafy greens support mood. Dark chocolate satisfies sweet cravings while providing magnesium. Don't restrict \u2014 nourish."
+            )
+        )
     )
 )

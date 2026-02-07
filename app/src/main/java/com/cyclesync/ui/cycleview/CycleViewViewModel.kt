@@ -40,7 +40,9 @@ data class CycleViewState(
     val ovulationDate: LocalDate? = null,
     val fertileWindowStart: LocalDate? = null,
     val fertileWindowEnd: LocalDate? = null,
-    val pmsStart: LocalDate? = null
+    val pmsStart: LocalDate? = null,
+    val dailyAffirmation: String = "",
+    val wellnessTip: String = ""
 )
 
 @HiltViewModel
@@ -52,6 +54,69 @@ class CycleViewViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(CycleViewState())
     val state: StateFlow<CycleViewState> = _state.asStateFlow()
+
+    companion object {
+        val affirmations = listOf(
+            "You are strong, capable, and worthy of love.",
+            "Your body is amazing and deserves kindness.",
+            "Today is a new opportunity to nurture yourself.",
+            "You are enough, just as you are right now.",
+            "Trust your body \u2014 it knows what it needs.",
+            "You deserve rest without guilt.",
+            "Your feelings are valid and important.",
+            "Be gentle with yourself today.",
+            "You are resilient and full of inner strength.",
+            "Celebrate the small victories today.",
+            "You radiate beauty from the inside out.",
+            "Prioritize your well-being \u2014 you matter.",
+            "You are worthy of taking up space.",
+            "Honor your body\u2019s rhythm and pace.",
+            "Every phase of your cycle is a superpower.",
+            "Your self-care is not selfish \u2014 it\u2019s essential.",
+            "You bring light to the world around you.",
+            "Listen to your body; it speaks wisdom.",
+            "You are growing stronger every single day.",
+            "Embrace where you are on your journey."
+        )
+
+        val wellnessTips = mapOf(
+            CyclePhase.MENSTRUATION to listOf(
+                "Warm compresses can help ease cramps. Try a heating pad on your lower abdomen.",
+                "Iron-rich foods like spinach and lentils help replenish what your body loses.",
+                "Gentle yoga and stretching can relieve tension and improve blood flow.",
+                "Stay hydrated \u2014 warm herbal teas like chamomile and ginger are soothing.",
+                "Rest is productive. Give yourself permission to slow down."
+            ),
+            CyclePhase.FOLLICULAR to listOf(
+                "Your energy is rising! Great time to start new projects or try a new workout.",
+                "Estrogen is climbing \u2014 you may feel more creative and social right now.",
+                "Light, fresh meals with plenty of vegetables support your rising energy.",
+                "This is a great time for strength training as your body recovers faster.",
+                "Your skin may be at its clearest \u2014 perfect time for a gentle exfoliation."
+            ),
+            CyclePhase.OVULATION to listOf(
+                "You\u2019re at peak energy! Channel it into activities you love.",
+                "Communication skills peak now \u2014 great for important conversations.",
+                "High-intensity workouts feel easier during this phase.",
+                "Stay hydrated and eat antioxidant-rich foods like berries and leafy greens.",
+                "Your confidence may be higher \u2014 embrace it!"
+            ),
+            CyclePhase.LUTEAL to listOf(
+                "Progesterone rises now. Complex carbs and magnesium-rich foods can help.",
+                "Gentle movement like walking or swimming is ideal as energy shifts.",
+                "Dark chocolate (in moderation) can satisfy cravings and boost mood.",
+                "Journaling or meditation can help process emotions during this phase.",
+                "Prioritize sleep \u2014 your body is doing important work behind the scenes."
+            ),
+            CyclePhase.PMS to listOf(
+                "Be extra kind to yourself. Cravings and mood shifts are normal.",
+                "Calcium and vitamin B6 may help reduce PMS symptoms.",
+                "A warm bath with Epsom salts can ease tension and soothe muscles.",
+                "Limit caffeine and salt to reduce bloating and irritability.",
+                "Cozy self-care rituals like face masks and candles can lift your spirits."
+            )
+        )
+    }
 
     init {
         loadData()
@@ -71,6 +136,17 @@ class CycleViewViewModel @Inject constructor(
         }
     }
 
+    private fun getAffirmationForToday(): String {
+        val dayOfYear = LocalDate.now().dayOfYear
+        return affirmations[dayOfYear % affirmations.size]
+    }
+
+    private fun getWellnessTipForPhase(phase: CyclePhase): String {
+        val tips = wellnessTips[phase] ?: wellnessTips[CyclePhase.FOLLICULAR]!!
+        val dayOfYear = LocalDate.now().dayOfYear
+        return tips[dayOfYear % tips.size]
+    }
+
     private fun buildState(
         currentCycle: Cycle?,
         predictions: List<Prediction>,
@@ -86,7 +162,9 @@ class CycleViewViewModel @Inject constructor(
                 hasCycles = false,
                 predictedCycleLength = typicalCycleLength,
                 periodLength = typicalPeriodLength,
-                mode = settings?.activeMode?.displayName ?: "Period Tracking"
+                mode = settings?.activeMode?.displayName ?: "Period Tracking",
+                dailyAffirmation = getAffirmationForToday(),
+                wellnessTip = getWellnessTipForPhase(CyclePhase.FOLLICULAR)
             )
         }
 
@@ -139,7 +217,9 @@ class CycleViewViewModel @Inject constructor(
             ovulationDate = ovulationPrediction?.predictedDate,
             fertileWindowStart = fertileStart?.predictedDate,
             fertileWindowEnd = fertileEnd?.predictedDate,
-            pmsStart = pmsStart?.predictedDate
+            pmsStart = pmsStart?.predictedDate,
+            dailyAffirmation = getAffirmationForToday(),
+            wellnessTip = getWellnessTipForPhase(phase)
         )
     }
 }

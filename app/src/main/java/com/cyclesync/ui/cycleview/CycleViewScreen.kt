@@ -1,6 +1,8 @@
 package com.cyclesync.ui.cycleview
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +15,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,9 +29,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cyclesync.core.constants.AppColors
 import com.cyclesync.domain.entity.CyclePhase
 import com.cyclesync.ui.cycleview.components.CycleRing
 import java.time.LocalDate
@@ -127,6 +134,12 @@ fun CycleViewScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Daily Affirmation Card
+        if (state.dailyAffirmation.isNotEmpty()) {
+            AffirmationCard(affirmation = state.dailyAffirmation)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Prediction cards
         if (state.hasCycles) {
             PredictionInfoCard(
@@ -153,6 +166,93 @@ fun CycleViewScreen(
                         subtitle = "${start.format(DateTimeFormatter.ofPattern("MMM d"))} - ${end.format(DateTimeFormatter.ofPattern("MMM d"))}"
                     )
                 }
+            }
+        }
+
+        // Wellness Tip Card
+        if (state.wellnessTip.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            WellnessTipCard(tip = state.wellnessTip, phase = state.currentPhase)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun AffirmationCard(affirmation: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.SelfCare.copy(alpha = 0.15f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = AppColors.Primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Daily Affirmation",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AppColors.Primary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = affirmation,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WellnessTipCard(tip: String, phase: CyclePhase) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.Wellness.copy(alpha = 0.15f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Spa,
+                contentDescription = null,
+                tint = AppColors.Wellness,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Wellness Tip \u2022 ${phase.displayName} Phase",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AppColors.Wellness
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = tip,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
