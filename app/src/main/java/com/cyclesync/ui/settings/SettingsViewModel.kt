@@ -75,7 +75,7 @@ class SettingsViewModel @Inject constructor(
             currentSettings?.let { settings ->
                 val nextMode = AppMode.next(settings.activeMode)
                 val updated = settings.copy(activeMode = nextMode)
-                settingsRepository.updateSettings(updated)
+                settingsRepository.saveSettings(updated)
             }
         }
     }

@@ -3,6 +3,7 @@ package com.cyclesync.ui.analysis
 import com.cyclesync.domain.entity.Cycle
 import com.cyclesync.domain.entity.Trend
 import com.cyclesync.domain.repository.CycleRepository
+import com.cyclesync.domain.repository.DailyLogRepository
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
@@ -26,6 +27,9 @@ class AnalysisViewModelTest {
     @MockK
     private lateinit var cycleRepository: CycleRepository
 
+    @MockK(relaxed = true)
+    private lateinit var dailyLogRepository: DailyLogRepository
+
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -45,7 +49,7 @@ class AnalysisViewModelTest {
     fun `initial state is loading`() = runTest {
         coEvery { cycleRepository.getAllCycles() } returns flowOf(emptyList())
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
 
         // Before advancing coroutines, state should be loading
         assertTrue(viewModel.state.value.isLoading)
@@ -57,7 +61,7 @@ class AnalysisViewModelTest {
     fun `empty cycles produces no analysis`() = runTest {
         coEvery { cycleRepository.getAllCycles() } returns flowOf(emptyList())
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         val state = viewModel.state.value
@@ -77,7 +81,7 @@ class AnalysisViewModelTest {
         )
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         val state = viewModel.state.value
@@ -101,7 +105,7 @@ class AnalysisViewModelTest {
         )
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         val state = viewModel.state.value
@@ -119,7 +123,7 @@ class AnalysisViewModelTest {
         }
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         val analysis = viewModel.state.value.analysis!!
@@ -136,7 +140,7 @@ class AnalysisViewModelTest {
         )
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         val analysis = viewModel.state.value.analysis!!
@@ -153,7 +157,7 @@ class AnalysisViewModelTest {
         }
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         assertEquals(Trend.STABLE, viewModel.state.value.analysis!!.cycleLengthTrend)
@@ -168,7 +172,7 @@ class AnalysisViewModelTest {
         )
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         assertEquals("Too few cycles should show STABLE", Trend.STABLE,
@@ -183,7 +187,7 @@ class AnalysisViewModelTest {
         }
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         assertEquals(Trend.LENGTHENING, viewModel.state.value.analysis!!.cycleLengthTrend)
@@ -197,7 +201,7 @@ class AnalysisViewModelTest {
         }
         coEvery { cycleRepository.getAllCycles() } returns flowOf(cycles)
 
-        val viewModel = AnalysisViewModel(cycleRepository)
+        val viewModel = AnalysisViewModel(cycleRepository, dailyLogRepository)
         advanceUntilIdle()
 
         assertEquals(Trend.SHORTENING, viewModel.state.value.analysis!!.cycleLengthTrend)

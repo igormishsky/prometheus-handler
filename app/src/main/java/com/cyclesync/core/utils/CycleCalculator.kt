@@ -83,18 +83,7 @@ object CycleCalculator {
     fun calculateRegularityScore(cycleLengths: List<Int>): Int {
         if (cycleLengths.size < 2) return 5
         val sd = calculateStandardDeviation(cycleLengths)
-        return when {
-            sd < 1.0 -> 10
-            sd < 2.0 -> 9
-            sd < 3.0 -> 8
-            sd < 4.0 -> 7
-            sd < 5.0 -> 6
-            sd < 6.0 -> 5
-            sd < 7.0 -> 4
-            sd < 8.0 -> 3
-            sd < 9.0 -> 2
-            else -> 1
-        }
+        return (10 - sd.toInt()).coerceIn(1, 10)
     }
 
     fun daysUntilNextPeriod(cycleStartDate: LocalDate, predictedCycleLength: Int): Int {
@@ -115,6 +104,20 @@ object CycleCalculator {
             .filter { it in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH }
         if (validLengths.isEmpty()) return null
         return validLengths.min() to validLengths.max()
+    }
+
+    fun linearRegressionSlope(values: List<Int>): Double {
+        val n = values.size
+        if (n < 2) return 0.0
+        val xMean = (n - 1) / 2.0
+        val yMean = values.average()
+        var numerator = 0.0
+        var denominator = 0.0
+        for (i in values.indices) {
+            numerator += (i - xMean) * (values[i] - yMean)
+            denominator += (i - xMean) * (i - xMean)
+        }
+        return if (denominator > 0.0) numerator / denominator else 0.0
     }
 
     fun calculateConsecutiveCycleStreak(cycles: List<Cycle>): Int {
