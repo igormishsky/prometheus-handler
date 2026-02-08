@@ -8,7 +8,6 @@ import com.cyclesync.domain.entity.Cycle
 import com.cyclesync.domain.entity.DailyLog
 import java.io.File
 import java.io.FileWriter
-import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -38,9 +37,7 @@ object CsvExporter {
                 "${context.packageName}.fileprovider",
                 file
             )
-        } catch (_: IOException) {
-            null
-        } catch (_: IllegalArgumentException) {
+        } catch (_: Exception) {
             null
         }
     }

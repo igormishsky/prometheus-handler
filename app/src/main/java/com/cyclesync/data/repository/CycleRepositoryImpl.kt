@@ -6,6 +6,7 @@ import com.cyclesync.core.utils.DateUtils
 import com.cyclesync.domain.entity.Cycle
 import com.cyclesync.domain.entity.SkipReason
 import com.cyclesync.domain.repository.CycleRepository
+import com.cyclesync.core.utils.enumValueOfOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -76,7 +77,7 @@ class CycleRepositoryImpl @Inject constructor(
         periodLength = periodLength,
         isExcluded = isExcluded,
         notes = notes,
-        skipReason = SkipReason.fromNameOrNull(skipReason)
+        skipReason = enumValueOfOrNull<SkipReason>(skipReason)
     )
 
     private fun Cycle.toEntity(): CycleEntity {

@@ -18,12 +18,6 @@ data class CycleAnalysis(
     val isRegular: Boolean
         get() = regularityScore >= 7
 
-    val isIrregular: Boolean
-        get() = regularityScore <= 3
-
-    val hasEnoughDataForTrend: Boolean
-        get() = cycleLengths.size >= 6
-
     val regularityDescription: String
         get() = when {
             regularityScore >= 9 -> "Very Regular"

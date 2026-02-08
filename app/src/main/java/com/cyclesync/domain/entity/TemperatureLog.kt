@@ -27,15 +27,4 @@ enum class TemperatureMethod(val displayName: String) {
     VAGINAL("Vaginal"),
     WEARABLE("Wearable"),
     EAR("Ear");
-
-    companion object {
-        fun fromNameOrNull(name: String?): TemperatureMethod? {
-            if (name.isNullOrBlank()) return null
-            return try {
-                valueOf(name.uppercase())
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-        }
-    }
 }

@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.cyclesync.R
+import com.cyclesync.core.utils.enumValueOfOrNull
 import com.cyclesync.domain.entity.NotificationPrivacy
 
 class ReminderReceiver : BroadcastReceiver() {
@@ -15,7 +16,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val type = intent.getStringExtra(ReminderManager.EXTRA_REMINDER_TYPE) ?: return
         val privacyName = intent.getStringExtra(ReminderManager.EXTRA_PRIVACY_LEVEL)
             ?: NotificationPrivacy.HIGH.name
-        val privacy = NotificationPrivacy.fromNameOrNull(privacyName) ?: NotificationPrivacy.HIGH
+        val privacy = enumValueOfOrNull<NotificationPrivacy>(privacyName) ?: NotificationPrivacy.HIGH
 
         val (title, body) = getNotificationContent(type, privacy)
 

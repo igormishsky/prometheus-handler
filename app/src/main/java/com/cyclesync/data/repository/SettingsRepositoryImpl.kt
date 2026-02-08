@@ -9,6 +9,7 @@ import com.cyclesync.domain.entity.BmiCategory
 import com.cyclesync.domain.entity.NotificationPrivacy
 import com.cyclesync.domain.entity.Settings
 import com.cyclesync.domain.repository.SettingsRepository
+import com.cyclesync.core.utils.enumValueOfOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -38,20 +39,20 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private fun SettingsEntity.toDomain(): Settings = Settings(
         id = id,
-        activeMode = AppMode.fromNameOrNull(activeMode) ?: AppMode.PERIOD_TRACKING,
+        activeMode = enumValueOfOrNull<AppMode>(activeMode) ?: AppMode.PERIOD_TRACKING,
         birthYear = birthYear,
-        bmiCategory = BmiCategory.fromNameOrNull(bmiCategory),
+        bmiCategory = enumValueOfOrNull<BmiCategory>(bmiCategory),
         typicalCycleLength = typicalCycleLength.coerceIn(15, 60),
         typicalPeriodLength = typicalPeriodLength.coerceIn(1, 15),
         pinHash = pinHash,
         appIcon = appIcon,
-        theme = AppTheme.fromNameOrNull(theme) ?: AppTheme.SYSTEM,
+        theme = enumValueOfOrNull<AppTheme>(theme) ?: AppTheme.SYSTEM,
         unitsWeight = unitsWeight,
         unitsTemp = unitsTemp,
         firstLaunchDate = DateUtils.fromIsoStringOrNull(firstLaunchDate) ?: LocalDate.now(),
         lastBackupDate = DateUtils.fromIsoStringOrNull(lastBackupDate),
         onboardingCompleted = onboardingCompleted,
-        notificationPrivacy = NotificationPrivacy.fromNameOrNull(notificationPrivacy) ?: NotificationPrivacy.HIGH
+        notificationPrivacy = enumValueOfOrNull<NotificationPrivacy>(notificationPrivacy) ?: NotificationPrivacy.HIGH
     )
 
     private fun Settings.toEntity(): SettingsEntity {

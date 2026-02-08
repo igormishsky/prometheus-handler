@@ -23,12 +23,6 @@ data class Medication(
             val beforeEnd = endDate?.let { !today.isAfter(it) } ?: true
             return afterStart && beforeEnd
         }
-
-    val hasDosage: Boolean
-        get() = !dosage.isNullOrBlank()
-
-    val hasDateRange: Boolean
-        get() = startDate != null || endDate != null
 }
 
 enum class MedicationType(val displayName: String) {

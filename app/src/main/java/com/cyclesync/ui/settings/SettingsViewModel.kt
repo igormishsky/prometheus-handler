@@ -73,7 +73,7 @@ class SettingsViewModel @Inject constructor(
     fun cycleMode() {
         viewModelScope.launch {
             currentSettings?.let { settings ->
-                val nextMode = AppMode.next(settings.activeMode)
+                val nextMode = settings.activeMode.next()
                 val updated = settings.copy(activeMode = nextMode)
                 settingsRepository.updateSettings(updated)
             }

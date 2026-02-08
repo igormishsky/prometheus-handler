@@ -40,30 +40,26 @@ object CycleCalculator {
         }
     }
 
+    private fun validCycleLengths(cycles: List<Cycle>): List<Int> =
+        cycles.filter { !it.isExcluded }.mapNotNull { it.cycleLength }.filter { it in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH }
+
+    private fun validPeriodLengths(cycles: List<Cycle>): List<Int> =
+        cycles.filter { !it.isExcluded }.mapNotNull { it.periodLength }.filter { it in MIN_PERIOD_LENGTH..MAX_PERIOD_LENGTH }
+
     fun calculateAverageCycleLength(cycles: List<Cycle>): Double {
-        val validLengths = cycles
-            .filter { !it.isExcluded }
-            .mapNotNull { it.cycleLength }
-            .filter { it in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH }
+        val validLengths = validCycleLengths(cycles)
         if (validLengths.isEmpty()) return PopulationPriors.POPULATION_MEAN_CYCLE
         return validLengths.average()
     }
 
     fun calculateAveragePeriodLength(cycles: List<Cycle>): Double {
-        val validLengths = cycles
-            .filter { !it.isExcluded }
-            .mapNotNull { it.periodLength }
-            .filter { it in MIN_PERIOD_LENGTH..MAX_PERIOD_LENGTH }
+        val validLengths = validPeriodLengths(cycles)
         if (validLengths.isEmpty()) return PopulationPriors.POPULATION_MEAN_PERIOD
         return validLengths.average()
     }
 
     fun calculateMedianCycleLength(cycles: List<Cycle>): Double {
-        val validLengths = cycles
-            .filter { !it.isExcluded }
-            .mapNotNull { it.cycleLength }
-            .filter { it in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH }
-            .sorted()
+        val validLengths = validCycleLengths(cycles).sorted()
         if (validLengths.isEmpty()) return PopulationPriors.POPULATION_MEAN_CYCLE
         val mid = validLengths.size / 2
         return if (validLengths.size % 2 == 0) {
@@ -109,12 +105,23 @@ object CycleCalculator {
         length in MIN_PERIOD_LENGTH..MAX_PERIOD_LENGTH
 
     fun calculateCycleLengthRange(cycles: List<Cycle>): Pair<Int, Int>? {
-        val validLengths = cycles
-            .filter { !it.isExcluded }
-            .mapNotNull { it.cycleLength }
-            .filter { it in MIN_CYCLE_LENGTH..MAX_CYCLE_LENGTH }
+        val validLengths = validCycleLengths(cycles)
         if (validLengths.isEmpty()) return null
         return validLengths.min() to validLengths.max()
+    }
+
+    fun linearRegressionSlope(values: List<Int>): Double {
+        val n = values.size
+        if (n < 2) return 0.0
+        val xMean = (n - 1) / 2.0
+        val yMean = values.average()
+        var numerator = 0.0
+        var denominator = 0.0
+        for (i in values.indices) {
+            numerator += (i - xMean) * (values[i] - yMean)
+            denominator += (i - xMean) * (i - xMean)
+        }
+        return if (denominator > 0.0) numerator / denominator else 0.0
     }
 
     fun calculateConsecutiveCycleStreak(cycles: List<Cycle>): Int {

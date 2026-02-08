@@ -1,6 +1,7 @@
 package com.cyclesync.domain.entity
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 data class Prediction(
     val id: String,
@@ -16,9 +17,6 @@ data class Prediction(
     val isHighConfidence: Boolean
         get() = confidence >= 0.7
 
-    val isMediumConfidence: Boolean
-        get() = confidence in 0.4..0.7
-
     val isLowConfidence: Boolean
         get() = confidence < 0.4
 
@@ -28,14 +26,11 @@ data class Prediction(
     val isPastPrediction: Boolean
         get() = predictedDate.isBefore(LocalDate.now())
 
-    val isFuturePrediction: Boolean
-        get() = !predictedDate.isBefore(LocalDate.now())
-
     val uncertaintyDays: Long?
         get() {
             val lower = lowerBound ?: return null
             val upper = upperBound ?: return null
-            return java.time.temporal.ChronoUnit.DAYS.between(lower, upper)
+            return ChronoUnit.DAYS.between(lower, upper)
         }
 }
 
@@ -47,15 +42,4 @@ enum class PredictionType(val displayName: String) {
     FERTILE_START("Fertile Window Start"),
     FERTILE_END("Fertile Window End"),
     OVULATION("Ovulation");
-
-    companion object {
-        fun fromNameOrNull(name: String?): PredictionType? {
-            if (name.isNullOrBlank()) return null
-            return try {
-                valueOf(name.uppercase())
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-        }
-    }
 }

@@ -16,14 +16,8 @@ data class Cycle(
     val notes: String? = null,
     val skipReason: SkipReason? = null
 ) {
-    val isOpen: Boolean
-        get() = endDate == null
-
     val isComplete: Boolean
         get() = endDate != null && cycleLength != null
-
-    val hasNotes: Boolean
-        get() = !notes.isNullOrBlank()
 
     val durationDays: Long?
         get() = endDate?.let { ChronoUnit.DAYS.between(startDate, it) }
@@ -53,15 +47,4 @@ enum class SkipReason(val displayName: String) {
     BREASTFEEDING("Breastfeeding"),
     PCOS("PCOS / Hormonal condition"),
     OTHER("Other");
-
-    companion object {
-        fun fromNameOrNull(name: String?): SkipReason? {
-            if (name.isNullOrBlank()) return null
-            return try {
-                valueOf(name.uppercase())
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-        }
-    }
 }

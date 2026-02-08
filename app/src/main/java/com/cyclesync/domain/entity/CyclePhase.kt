@@ -12,15 +12,4 @@ enum class CyclePhase(val displayName: String, val description: String) {
 
     val isFertilePhase: Boolean
         get() = this == OVULATION
-
-    companion object {
-        fun fromNameOrNull(name: String?): CyclePhase? {
-            if (name.isNullOrBlank()) return null
-            return try {
-                valueOf(name.uppercase())
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-        }
-    }
 }

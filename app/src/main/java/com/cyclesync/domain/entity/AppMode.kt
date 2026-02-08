@@ -12,20 +12,8 @@ enum class AppMode(val displayName: String, val description: String) {
     val showsPregnancyData: Boolean
         get() = this == PREGNANCY
 
-    companion object {
-        fun fromNameOrNull(name: String?): AppMode? {
-            if (name.isNullOrBlank()) return null
-            return try {
-                valueOf(name.uppercase())
-            } catch (_: IllegalArgumentException) {
-                null
-            }
-        }
-
-        fun next(current: AppMode): AppMode {
-            val modes = entries
-            val currentIndex = modes.indexOf(current)
-            return modes[(currentIndex + 1) % modes.size]
-        }
+    fun next(): AppMode {
+        val modes = entries
+        return modes[(ordinal + 1) % modes.size]
     }
 }

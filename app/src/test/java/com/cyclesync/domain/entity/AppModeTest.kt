@@ -1,5 +1,6 @@
 package com.cyclesync.domain.entity
 
+import com.cyclesync.core.utils.enumValueOfOrNull
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -37,33 +38,33 @@ class AppModeTest {
 
     @Test
     fun `fromNameOrNull returns correct mode`() {
-        assertEquals(AppMode.PERIOD_TRACKING, AppMode.fromNameOrNull("PERIOD_TRACKING"))
-        assertEquals(AppMode.CONCEIVE, AppMode.fromNameOrNull("conceive"))
-        assertEquals(AppMode.PREGNANCY, AppMode.fromNameOrNull("PREGNANCY"))
-        assertEquals(AppMode.PERIMENOPAUSE, AppMode.fromNameOrNull("perimenopause"))
+        assertEquals(AppMode.PERIOD_TRACKING, enumValueOfOrNull<AppMode>("PERIOD_TRACKING"))
+        assertEquals(AppMode.CONCEIVE, enumValueOfOrNull<AppMode>("conceive"))
+        assertEquals(AppMode.PREGNANCY, enumValueOfOrNull<AppMode>("PREGNANCY"))
+        assertEquals(AppMode.PERIMENOPAUSE, enumValueOfOrNull<AppMode>("perimenopause"))
     }
 
     @Test
     fun `fromNameOrNull returns null for invalid`() {
-        assertNull(AppMode.fromNameOrNull("invalid"))
-        assertNull(AppMode.fromNameOrNull(null))
-        assertNull(AppMode.fromNameOrNull(""))
-        assertNull(AppMode.fromNameOrNull("   "))
+        assertNull(enumValueOfOrNull<AppMode>("invalid"))
+        assertNull(enumValueOfOrNull<AppMode>(null))
+        assertNull(enumValueOfOrNull<AppMode>(""))
+        assertNull(enumValueOfOrNull<AppMode>("   "))
     }
 
     @Test
     fun `next cycles through all modes`() {
-        assertEquals(AppMode.CONCEIVE, AppMode.next(AppMode.PERIOD_TRACKING))
-        assertEquals(AppMode.PREGNANCY, AppMode.next(AppMode.CONCEIVE))
-        assertEquals(AppMode.PERIMENOPAUSE, AppMode.next(AppMode.PREGNANCY))
-        assertEquals(AppMode.PERIOD_TRACKING, AppMode.next(AppMode.PERIMENOPAUSE))
+        assertEquals(AppMode.CONCEIVE, AppMode.PERIOD_TRACKING.next())
+        assertEquals(AppMode.PREGNANCY, AppMode.CONCEIVE.next())
+        assertEquals(AppMode.PERIMENOPAUSE, AppMode.PREGNANCY.next())
+        assertEquals(AppMode.PERIOD_TRACKING, AppMode.PERIMENOPAUSE.next())
     }
 
     @Test
     fun `next wraps around from last to first`() {
         val last = AppMode.entries.last()
         val expected = AppMode.entries.first()
-        assertEquals(expected, AppMode.next(last))
+        assertEquals(expected, last.next())
     }
 
     @Test
@@ -105,13 +106,13 @@ class AppModeTest {
 
     @Test
     fun `CyclePhase fromNameOrNull returns correct phase`() {
-        assertEquals(CyclePhase.MENSTRUATION, CyclePhase.fromNameOrNull("MENSTRUATION"))
-        assertEquals(CyclePhase.OVULATION, CyclePhase.fromNameOrNull("ovulation"))
+        assertEquals(CyclePhase.MENSTRUATION, enumValueOfOrNull<CyclePhase>("MENSTRUATION"))
+        assertEquals(CyclePhase.OVULATION, enumValueOfOrNull<CyclePhase>("ovulation"))
     }
 
     @Test
     fun `CyclePhase fromNameOrNull returns null for invalid`() {
-        assertNull(CyclePhase.fromNameOrNull("invalid"))
-        assertNull(CyclePhase.fromNameOrNull(null))
+        assertNull(enumValueOfOrNull<CyclePhase>("invalid"))
+        assertNull(enumValueOfOrNull<CyclePhase>(null))
     }
 }

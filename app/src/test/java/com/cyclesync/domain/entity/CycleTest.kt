@@ -1,22 +1,11 @@
 package com.cyclesync.domain.entity
 
+import com.cyclesync.core.utils.enumValueOfOrNull
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDate
 
 class CycleTest {
-
-    @Test
-    fun `isOpen returns true when endDate is null`() {
-        val cycle = createCycle(endDate = null)
-        assertTrue(cycle.isOpen)
-    }
-
-    @Test
-    fun `isOpen returns false when endDate is set`() {
-        val cycle = createCycle(endDate = LocalDate.of(2024, 1, 28))
-        assertFalse(cycle.isOpen)
-    }
 
     @Test
     fun `isComplete returns true when endDate and cycleLength are set`() {
@@ -28,24 +17,6 @@ class CycleTest {
     fun `isComplete returns false when cycleLength is null`() {
         val cycle = createCycle(endDate = LocalDate.of(2024, 1, 28), cycleLength = null)
         assertFalse(cycle.isComplete)
-    }
-
-    @Test
-    fun `hasNotes returns true when notes is non-blank`() {
-        val cycle = createCycle(notes = "Some notes")
-        assertTrue(cycle.hasNotes)
-    }
-
-    @Test
-    fun `hasNotes returns false when notes is null`() {
-        val cycle = createCycle(notes = null)
-        assertFalse(cycle.hasNotes)
-    }
-
-    @Test
-    fun `hasNotes returns false when notes is blank`() {
-        val cycle = createCycle(notes = "   ")
-        assertFalse(cycle.hasNotes)
     }
 
     @Test
@@ -151,15 +122,15 @@ class CycleTest {
 
     @Test
     fun `SkipReason fromNameOrNull returns correct reason`() {
-        assertEquals(SkipReason.STRESS, SkipReason.fromNameOrNull("STRESS"))
-        assertEquals(SkipReason.ILLNESS, SkipReason.fromNameOrNull("illness"))
+        assertEquals(SkipReason.STRESS, enumValueOfOrNull<SkipReason>("STRESS"))
+        assertEquals(SkipReason.ILLNESS, enumValueOfOrNull<SkipReason>("illness"))
     }
 
     @Test
     fun `SkipReason fromNameOrNull returns null for invalid name`() {
-        assertNull(SkipReason.fromNameOrNull("invalid"))
-        assertNull(SkipReason.fromNameOrNull(null))
-        assertNull(SkipReason.fromNameOrNull(""))
+        assertNull(enumValueOfOrNull<SkipReason>("invalid"))
+        assertNull(enumValueOfOrNull<SkipReason>(null))
+        assertNull(enumValueOfOrNull<SkipReason>(""))
     }
 
     @Test

@@ -9,6 +9,7 @@ import com.cyclesync.domain.entity.DailyLog
 import com.cyclesync.domain.entity.TrackingCategory
 import com.cyclesync.domain.entity.TrackingEntry
 import com.cyclesync.domain.repository.DailyLogRepository
+import com.cyclesync.core.utils.enumValueOfOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -113,11 +114,7 @@ class DailyLogRepositoryImpl @Inject constructor(
     )
 
     private fun TrackingEntryEntity.toDomainOrNull(): TrackingEntry? {
-        val parsedCategory = try {
-            TrackingCategory.valueOf(category.uppercase())
-        } catch (_: IllegalArgumentException) {
-            return null
-        }
+        val parsedCategory = enumValueOfOrNull<TrackingCategory>(category) ?: return null
         return TrackingEntry(
             id = id,
             dailyLogId = dailyLogId,

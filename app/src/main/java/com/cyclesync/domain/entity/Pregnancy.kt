@@ -61,9 +61,6 @@ data class PregnancyLog(
     val value: String? = null,
     val notes: String? = null
 ) {
-    val hasNotes: Boolean
-        get() = !notes.isNullOrBlank()
-
     val gestationalAge: String?
         get() {
             val week = gestationalWeek ?: return null

@@ -6,6 +6,7 @@ import com.cyclesync.core.utils.DateUtils
 import com.cyclesync.domain.entity.Prediction
 import com.cyclesync.domain.entity.PredictionType
 import com.cyclesync.domain.repository.PredictionRepository
+import com.cyclesync.core.utils.enumValueOfOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -52,7 +53,7 @@ class PredictionRepositoryImpl @Inject constructor(
     }
 
     private fun PredictionEntity.toDomainOrNull(): Prediction? {
-        val parsedType = PredictionType.fromNameOrNull(type) ?: return null
+        val parsedType = enumValueOfOrNull<PredictionType>(type) ?: return null
         val parsedDate = DateUtils.fromIsoStringOrNull(predictedDate) ?: return null
         return Prediction(
             id = id,

@@ -1,5 +1,6 @@
 package com.cyclesync.domain.entity
 
+import com.cyclesync.core.utils.enumValueOfOrNull
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.LocalDate
@@ -16,12 +17,6 @@ class PredictionTest {
     fun `isHighConfidence returns false when confidence below 0_7`() {
         val pred = createPrediction(confidence = 0.5)
         assertFalse(pred.isHighConfidence)
-    }
-
-    @Test
-    fun `isMediumConfidence returns true for mid-range`() {
-        val pred = createPrediction(confidence = 0.5)
-        assertTrue(pred.isMediumConfidence)
     }
 
     @Test
@@ -50,18 +45,6 @@ class PredictionTest {
     }
 
     @Test
-    fun `isFuturePrediction returns true for future dates`() {
-        val pred = createPrediction(predictedDate = LocalDate.now().plusDays(1))
-        assertTrue(pred.isFuturePrediction)
-    }
-
-    @Test
-    fun `isFuturePrediction returns true for today`() {
-        val pred = createPrediction(predictedDate = LocalDate.now())
-        assertTrue(pred.isFuturePrediction)
-    }
-
-    @Test
     fun `uncertaintyDays calculates correctly`() {
         val pred = createPrediction(
             lowerBound = LocalDate.of(2024, 1, 25),
@@ -78,15 +61,15 @@ class PredictionTest {
 
     @Test
     fun `PredictionType fromNameOrNull returns correct type`() {
-        assertEquals(PredictionType.PERIOD_START, PredictionType.fromNameOrNull("PERIOD_START"))
-        assertEquals(PredictionType.OVULATION, PredictionType.fromNameOrNull("ovulation"))
+        assertEquals(PredictionType.PERIOD_START, enumValueOfOrNull<PredictionType>("PERIOD_START"))
+        assertEquals(PredictionType.OVULATION, enumValueOfOrNull<PredictionType>("ovulation"))
     }
 
     @Test
     fun `PredictionType fromNameOrNull returns null for invalid`() {
-        assertNull(PredictionType.fromNameOrNull("invalid"))
-        assertNull(PredictionType.fromNameOrNull(null))
-        assertNull(PredictionType.fromNameOrNull(""))
+        assertNull(enumValueOfOrNull<PredictionType>("invalid"))
+        assertNull(enumValueOfOrNull<PredictionType>(null))
+        assertNull(enumValueOfOrNull<PredictionType>(""))
     }
 
     @Test
