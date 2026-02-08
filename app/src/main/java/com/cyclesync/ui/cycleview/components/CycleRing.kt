@@ -14,8 +14,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.cyclesync.R
 import com.cyclesync.core.constants.AppColors
 import com.cyclesync.domain.entity.CyclePhase
 import kotlin.math.cos
@@ -37,9 +41,10 @@ fun CycleRing(
         CyclePhase.PMS -> AppColors.PMS
     }
 
+    val ringDescription = stringResource(R.string.a11y_cycle_ring, currentDay, totalDays, currentPhase.displayName)
     Box(
         contentAlignment = Alignment.Center,
-        modifier = modifier
+        modifier = modifier.semantics { contentDescription = ringDescription }
     ) {
         Canvas(modifier = modifier) {
             val strokeWidth = 24.dp.toPx()

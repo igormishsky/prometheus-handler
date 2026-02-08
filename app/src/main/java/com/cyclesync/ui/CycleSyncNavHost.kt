@@ -49,6 +49,15 @@ fun CycleSyncNavHost(
 
         composable(Screen.Settings.route) {
             SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPrivacyPolicy = {
+                    navController.navigate(Screen.PrivacyPolicy.route)
+                }
+            )
+        }
+
+        composable(Screen.PrivacyPolicy.route) {
+            com.cyclesync.ui.settings.PrivacyPolicyScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

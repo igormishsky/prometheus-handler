@@ -29,6 +29,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
+import timber.log.Timber
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -54,7 +55,8 @@ object AppModule {
             DB_NAME
         )
             .openHelperFactory(factory)
-            .fallbackToDestructiveMigration()
+            // Do NOT use fallbackToDestructiveMigration() — it wipes all user data on schema changes.
+            // Add explicit Migration objects here when bumping the database version.
             .build()
     }
 
@@ -90,7 +92,8 @@ object AppModule {
             } else {
                 getFallbackKey()
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Timber.w(e, "Android Keystore unavailable, using fallback encryption key")
             getFallbackKey()
         }
     }

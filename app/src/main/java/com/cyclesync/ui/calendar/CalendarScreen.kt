@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -33,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -141,6 +144,18 @@ private fun CalendarDayCell(
         else -> MaterialTheme.colorScheme.onBackground
     }
 
+    // Build accessibility description for screen readers
+    val dayLabel = day.date.dayOfMonth.toString()
+    val a11yLabel = buildString {
+        append(day.date.format(DateTimeFormatter.ofPattern("MMMM d")))
+        if (day.isToday) append(", today")
+        if (day.isPeriod) append(", period day")
+        if (day.isPredictedPeriod) append(", predicted period")
+        if (day.isOvulation) append(", ovulation day")
+        if (day.isFertile) append(", fertile day")
+        if (day.isPMS) append(", PMS day")
+    }
+
     Box(
         modifier = Modifier
             .aspectRatio(1f)
@@ -153,15 +168,27 @@ private fun CalendarDayCell(
                     RoundedCornerShape(4.dp)
                 ) else Modifier
             )
+            .semantics { contentDescription = a11yLabel }
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "${day.date.dayOfMonth}",
-            style = MaterialTheme.typography.bodySmall,
-            color = textColor,
-            textAlign = TextAlign.Center
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = dayLabel,
+                style = MaterialTheme.typography.bodySmall,
+                color = textColor,
+                textAlign = TextAlign.Center
+            )
+            // Visual indicator dot for colorblind accessibility
+            if (day.isPeriod || day.isPredictedPeriod || day.isFertile || day.isOvulation || day.isPMS) {
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .clip(CircleShape)
+                        .background(if (day.isPeriod || day.isOvulation) Color.White else textColor)
+                )
+            }
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.cyclesync.R
 import com.cyclesync.domain.entity.NotificationPrivacy
+import timber.log.Timber
 
 class ReminderReceiver : BroadcastReceiver() {
 
@@ -38,8 +39,8 @@ class ReminderReceiver : BroadcastReceiver() {
 
         try {
             NotificationManagerCompat.from(context).notify(type.hashCode(), notification)
-        } catch (_: SecurityException) {
-            // Notification permission not granted
+        } catch (e: SecurityException) {
+            Timber.w(e, "Notification permission not granted")
         }
     }
 

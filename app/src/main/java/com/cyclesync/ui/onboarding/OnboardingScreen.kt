@@ -172,8 +172,8 @@ private fun PrivacyStep() {
             "Military-grade encryption on your device",
             "Zero internet access \u2014 we can\u2019t see your data even if we wanted to",
             "No accounts, no email, no phone number",
-            "Biometric lock \u2014 only your fingerprint opens it",
-            "Panic wipe \u2014 erase everything instantly if needed"
+            "Screenshot protection \u2014 your data stays off screen captures",
+            "Delete all data instantly from Settings if ever needed"
         )
         points.forEach { point ->
             Card(

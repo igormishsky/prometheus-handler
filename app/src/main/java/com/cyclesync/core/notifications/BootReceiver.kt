@@ -3,6 +3,7 @@ package com.cyclesync.core.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import timber.log.Timber
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -11,8 +12,8 @@ class BootReceiver : BroadcastReceiver() {
         try {
             val reminderManager = ReminderManager()
             reminderManager.createNotificationChannel(context)
-        } catch (_: Exception) {
-            // Prevent boot receiver from crashing the app
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to restore notification channel on boot")
         }
     }
 }

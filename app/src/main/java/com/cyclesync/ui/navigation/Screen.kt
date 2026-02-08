@@ -4,6 +4,7 @@ sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding")
     data object Main : Screen("main")
     data object Settings : Screen("settings")
+    data object PrivacyPolicy : Screen("privacy_policy")
     data object Tracking : Screen("tracking/{date}") {
         fun createRoute(date: String) = "tracking/$date"
     }

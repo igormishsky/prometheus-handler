@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -93,8 +94,9 @@ class SettingsViewModel @Inject constructor(
                 } else {
                     _state.value = _state.value.copy(error = "Failed to export data")
                 }
-            } catch (_: Exception) {
-                _state.value = _state.value.copy(error = "Failed to export data")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to export data")
+                _state.value = _state.value.copy(error = "Failed to export data. Please check your device storage and try again.")
             }
         }
     }
@@ -139,8 +141,9 @@ class SettingsViewModel @Inject constructor(
             try {
                 cycleRepository.deleteAllCycles()
                 predictionRepository.deleteAll()
-            } catch (_: Exception) {
-                _state.value = _state.value.copy(error = "Failed to delete data")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to delete data")
+                _state.value = _state.value.copy(error = "Failed to delete data. Please try again.")
             }
         }
     }

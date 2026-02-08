@@ -24,16 +24,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import com.cyclesync.ui.analysis.AnalysisScreen
 import com.cyclesync.ui.calendar.CalendarScreen
 import com.cyclesync.ui.content.ContentScreen
+import com.cyclesync.R
 import com.cyclesync.ui.cycleview.CycleViewScreen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class BottomNavItem(
-    val label: String,
+    val labelResId: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 )
@@ -44,10 +46,10 @@ fun MainScreen(
     onNavigateToTracking: (String) -> Unit
 ) {
     val navItems = listOf(
-        BottomNavItem("Cycle", Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-        BottomNavItem("Calendar", Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-        BottomNavItem("Analysis", Icons.Filled.Analytics, Icons.Outlined.Analytics),
-        BottomNavItem("Learn", Icons.Filled.LibraryBooks, Icons.Outlined.LibraryBooks)
+        BottomNavItem(R.string.nav_cycle, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
+        BottomNavItem(R.string.nav_calendar, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
+        BottomNavItem(R.string.nav_analysis, Icons.Filled.Analytics, Icons.Outlined.Analytics),
+        BottomNavItem(R.string.nav_learn, Icons.Filled.LibraryBooks, Icons.Outlined.LibraryBooks)
     )
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -60,10 +62,10 @@ fun MainScreen(
                         icon = {
                             Icon(
                                 imageVector = if (selectedTab == index) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.label
+                                contentDescription = stringResource(item.labelResId)
                             )
                         },
-                        label = { Text(item.label) },
+                        label = { Text(stringResource(item.labelResId)) },
                         selected = selectedTab == index,
                         onClick = { selectedTab = index }
                     )
@@ -78,7 +80,7 @@ fun MainScreen(
                 },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Log today")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_log_today))
             }
         }
     ) { paddingValues ->

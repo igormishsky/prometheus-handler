@@ -38,14 +38,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.cyclesync.R
 import com.cyclesync.core.utils.CsvExporter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -56,7 +59,7 @@ fun SettingsScreen(
     LaunchedEffect(state.exportReady) {
         if (state.exportReady && state.exportUri != null) {
             val shareIntent = CsvExporter.createShareIntent(state.exportUri!!)
-            context.startActivity(Intent.createChooser(shareIntent, "Export CycleSync Data"))
+            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.settings_export_share)))
             viewModel.clearExportState()
         }
     }
@@ -64,10 +67,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
                     }
                 }
             )
@@ -81,7 +84,7 @@ fun SettingsScreen(
                 .padding(16.dp)
         ) {
             // Mode selection
-            SectionHeader("Tracking Mode")
+            SectionHeader(stringResource(R.string.settings_tracking_mode))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -104,23 +107,23 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Cycle settings
-            SectionHeader("Cycle Defaults")
-            SettingsRow("Typical cycle length", "${state.typicalCycleLength} days")
-            SettingsRow("Typical period length", "${state.typicalPeriodLength} days")
+            SectionHeader(stringResource(R.string.settings_cycle_defaults))
+            SettingsRow(stringResource(R.string.settings_typical_cycle_length), stringResource(R.string.settings_days_format, state.typicalCycleLength))
+            SettingsRow(stringResource(R.string.settings_typical_period_length), stringResource(R.string.settings_days_format, state.typicalPeriodLength))
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Reminders
-            SectionHeader("Reminders")
+            SectionHeader(stringResource(R.string.settings_reminders))
             SettingsToggleRow(
-                label = "Cycle reminders",
-                description = "Get notified before your period, PMS, and fertile window",
+                label = stringResource(R.string.settings_cycle_reminders),
+                description = stringResource(R.string.settings_cycle_reminders_desc),
                 checked = state.remindersEnabled,
                 onCheckedChange = { viewModel.toggleReminders(context, it) }
             )
             SettingsToggleRow(
-                label = "Daily log reminder",
-                description = "Nightly reminder to log your symptoms at 9 PM",
+                label = stringResource(R.string.settings_daily_log_reminder),
+                description = stringResource(R.string.settings_daily_log_reminder_desc),
                 checked = state.dailyLogReminder,
                 onCheckedChange = { viewModel.toggleDailyLogReminder(context, it) }
             )
@@ -128,15 +131,13 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Privacy
-            SectionHeader("Privacy & Security")
-            SettingsRow("App lock", "Not set")
-            SettingsRow("Disguised icon", state.appIcon)
-            SettingsRow("Notification privacy", state.notificationPrivacy)
+            SectionHeader(stringResource(R.string.settings_privacy_security))
+            SettingsRow(stringResource(R.string.settings_notification_privacy), state.notificationPrivacy)
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Data
-            SectionHeader("Data")
+            SectionHeader(stringResource(R.string.settings_data))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -146,25 +147,25 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Export Data (CSV)",
+                        text = stringResource(R.string.settings_export_csv),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Export all cycles and daily logs as a CSV file",
+                        text = stringResource(R.string.settings_export_csv_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            SettingsRow("Create backup", "")
-            SettingsRow("Import backup", "")
+            SettingsRow(stringResource(R.string.settings_create_backup), "")
+            SettingsRow(stringResource(R.string.settings_import_backup), "")
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Danger zone
-            SectionHeader("Danger Zone")
+            SectionHeader(stringResource(R.string.settings_danger_zone))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -174,12 +175,12 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Delete All Data",
+                        text = stringResource(R.string.settings_delete_all),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
                     Text(
-                        text = "Permanently delete all cycles, logs, and predictions",
+                        text = stringResource(R.string.settings_delete_all_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
@@ -189,15 +190,36 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // About
-            SectionHeader("About")
+            SectionHeader(stringResource(R.string.settings_about))
             Text(
-                text = "CycleSync v1.0.0",
+                text = stringResource(R.string.settings_version, "1.0.0"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToPrivacyPolicy() },
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_privacy_policy),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_privacy_policy_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "CycleSync is a health tracking tool, not a medical device. It should NOT be used as a method of contraception. Predictions are estimates based on statistical models and your personal data. Consult a healthcare professional for medical advice.",
+                text = stringResource(R.string.settings_medical_disclaimer),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -207,8 +229,8 @@ fun SettingsScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete All Data?") },
-            text = { Text("This will permanently delete ALL your data. This cannot be undone.") },
+            title = { Text(stringResource(R.string.settings_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.settings_delete_dialog_body)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -216,12 +238,12 @@ fun SettingsScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.settings_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.settings_cancel))
                 }
             }
         )

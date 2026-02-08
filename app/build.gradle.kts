@@ -22,6 +22,21 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            // Load from keystore.properties (not checked into version control)
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                val properties = java.util.Properties()
+                properties.load(keystorePropertiesFile.inputStream())
+                storeFile = file(properties["storeFile"] as String)
+                storePassword = properties["storePassword"] as String
+                keyAlias = properties["keyAlias"] as String
+                keyPassword = properties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -30,6 +45,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -44,6 +63,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -94,13 +114,15 @@ dependencies {
 
     // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("androidx.biometric:biometric:1.1.0")
 
     // Local notifications
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // JSON
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // Logging
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

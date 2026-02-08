@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -87,7 +88,8 @@ class AnalysisViewModel @Inject constructor(
                 val firstDate = cycles.minOf { it.startDate }
                 val allLogs = try {
                     dailyLogRepository.getByDateRange(firstDate, LocalDate.now())
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to load daily logs")
                     emptyList()
                 }
                 val totalDays = allLogs.size
@@ -164,7 +166,8 @@ class AnalysisViewModel @Inject constructor(
             .map { cycle ->
                 val cycleLogs = try {
                     dailyLogRepository.getByCycleId(cycle.id)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to load daily logs")
                     emptyList()
                 }
                 val topSymptoms = cycleLogs

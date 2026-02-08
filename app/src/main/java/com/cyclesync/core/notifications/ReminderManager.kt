@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import com.cyclesync.domain.entity.NotificationPrivacy
+import timber.log.Timber
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -132,8 +133,8 @@ class ReminderManager @Inject constructor() {
                 AlarmManager.INTERVAL_DAY,
                 pendingIntent
             )
-        } catch (_: SecurityException) {
-            // SCHEDULE_EXACT_ALARM permission not granted on Android 12+
+        } catch (e: SecurityException) {
+            Timber.w(e, "SCHEDULE_EXACT_ALARM permission not granted")
         }
     }
 
@@ -150,8 +151,8 @@ class ReminderManager @Inject constructor() {
             pendingIntent?.let {
                 try {
                     alarmManager.cancel(it)
-                } catch (_: Exception) {
-                    // Ignore cancellation failures
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to cancel alarm for request code %d", requestCode)
                 }
             }
         }
@@ -188,8 +189,8 @@ class ReminderManager @Inject constructor() {
                 triggerTime,
                 pendingIntent
             )
-        } catch (_: SecurityException) {
-            // SCHEDULE_EXACT_ALARM permission not granted on Android 12+
+        } catch (e: SecurityException) {
+            Timber.w(e, "SCHEDULE_EXACT_ALARM permission not granted")
         }
     }
 }

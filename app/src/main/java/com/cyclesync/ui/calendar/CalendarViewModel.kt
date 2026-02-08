@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
@@ -91,7 +92,8 @@ class CalendarViewModel @Inject constructor(
                 val predictions = predictionRepository.getActivePredictionsOnce()
                 _state.value = buildCalendarState(cycles, predictions)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = "Failed to load calendar data")
+                Timber.e(e, "Failed to load calendar data")
+                _state.value = _state.value.copy(error = "Failed to load calendar data. Please try again.")
             }
         }
     }

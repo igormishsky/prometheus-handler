@@ -23,3 +23,8 @@ out/
 *.swp
 *~
 app/build/
+
+# Release signing
+keystore.properties
+*.jks
+*.keystore

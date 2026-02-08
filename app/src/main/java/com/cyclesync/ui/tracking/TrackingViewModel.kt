@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -81,8 +82,9 @@ class TrackingViewModel @Inject constructor(
                     entries = entriesMap,
                     isLoading = false
                 )
-            } catch (_: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = "Failed to load tracking data")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load tracking data")
+                _state.value = _state.value.copy(isLoading = false, error = "Failed to load tracking data. Please try again.")
             }
         }
     }
@@ -195,8 +197,9 @@ class TrackingViewModel @Inject constructor(
                 dailyLogRepository.saveTrackingEntries(logId, entries)
 
                 _state.value = _state.value.copy(isSaved = true, isSaving = false)
-            } catch (_: Exception) {
-                _state.value = _state.value.copy(isSaving = false, error = "Failed to save tracking data")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save tracking data")
+                _state.value = _state.value.copy(isSaving = false, error = "Failed to save tracking data. Please try again.")
             }
         }
     }

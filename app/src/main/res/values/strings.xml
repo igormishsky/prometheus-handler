@@ -1,4 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CycleSync</string>
+
+    <!-- Navigation -->
+    <string name="nav_cycle">Cycle</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_analysis">Analysis</string>
+    <string name="nav_learn">Learn</string>
+    <string name="content_desc_log_today">Log today</string>
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_settings">Settings</string>
+    <string name="content_desc_previous_month">Previous month</string>
+    <string name="content_desc_next_month">Next month</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_tracking_mode">Tracking Mode</string>
+    <string name="settings_current_mode">Current: %s</string>
+    <string name="settings_tap_to_change">Tap to change mode</string>
+    <string name="settings_cycle_defaults">Cycle Defaults</string>
+    <string name="settings_typical_cycle_length">Typical cycle length</string>
+    <string name="settings_typical_period_length">Typical period length</string>
+    <string name="settings_days_format">%d days</string>
+    <string name="settings_reminders">Reminders</string>
+    <string name="settings_cycle_reminders">Cycle reminders</string>
+    <string name="settings_cycle_reminders_desc">Get notified before your period, PMS, and fertile window</string>
+    <string name="settings_daily_log_reminder">Daily log reminder</string>
+    <string name="settings_daily_log_reminder_desc">Nightly reminder to log your symptoms at 9 PM</string>
+    <string name="settings_privacy_security">Privacy &amp; Security</string>
+    <string name="settings_notification_privacy">Notification privacy</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_export_csv">Export Data (CSV)</string>
+    <string name="settings_export_csv_desc">Export all cycles and daily logs as a CSV file</string>
+    <string name="settings_export_share">Export CycleSync Data</string>
+    <string name="settings_create_backup">Create backup</string>
+    <string name="settings_import_backup">Import backup</string>
+    <string name="settings_danger_zone">Danger Zone</string>
+    <string name="settings_delete_all">Delete All Data</string>
+    <string name="settings_delete_all_desc">Permanently delete all cycles, logs, and predictions</string>
+    <string name="settings_delete_dialog_title">Delete All Data?</string>
+    <string name="settings_delete_dialog_body">This will permanently delete ALL your data. This cannot be undone.</string>
+    <string name="settings_delete_confirm">Delete</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">CycleSync v%s</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_privacy_policy_desc">Your data never leaves this device</string>
+    <string name="settings_medical_disclaimer">CycleSync is a health tracking tool, not a medical device. It should NOT be used as a method of contraception. Predictions are estimates based on statistical models and your personal data. Consult a healthcare professional for medical advice.</string>
+
+    <!-- Error messages -->
+    <string name="error_export_failed">Failed to export data. Please check your device storage and try again.</string>
+    <string name="error_delete_failed">Failed to delete data. Please try again.</string>
+    <string name="error_load_calendar">Failed to load calendar data. Please try again.</string>
+    <string name="error_load_tracking">Failed to load tracking data. Please try again.</string>
+    <string name="error_save_tracking">Failed to save tracking data. Please try again.</string>
+
+    <!-- Calendar -->
+    <string name="calendar_legend_period">Period</string>
+    <string name="calendar_legend_fertile">Fertile</string>
+    <string name="calendar_legend_pms">PMS</string>
+
+    <!-- Tracking -->
+    <string name="tracking_period">Period</string>
+    <string name="tracking_flow">Flow</string>
+    <string name="tracking_pain">Pain</string>
+    <string name="tracking_mood">Mood</string>
+    <string name="tracking_energy">Energy</string>
+    <string name="tracking_skin">Skin</string>
+    <string name="tracking_mental">Mental</string>
+    <string name="tracking_sleep_quality">Sleep Quality</string>
+    <string name="tracking_sleep_issues">Sleep Issues</string>
+    <string name="tracking_exercise_type">Exercise Type</string>
+    <string name="tracking_exercise_intensity">Exercise Intensity</string>
+    <string name="tracking_digestion">Digestion</string>
+    <string name="tracking_appetite">Appetite</string>
+    <string name="tracking_cravings">Cravings</string>
+    <string name="tracking_social">Social</string>
+    <string name="tracking_hair">Hair</string>
+    <string name="tracking_discharge_type">Discharge Type</string>
+    <string name="tracking_discharge_amount">Discharge Amount</string>
+    <string name="tracking_libido">Libido</string>
+    <string name="tracking_stool">Stool (Bristol Scale)</string>
+    <string name="tracking_self_care">Self Care Activities</string>
+    <string name="tracking_pampering">Pampering</string>
+    <string name="tracking_water_intake">Water Intake (glasses)</string>
+    <string name="tracking_beverages">Beverages</string>
+    <string name="tracking_gratitude">Gratitude</string>
+    <string name="tracking_notes">Notes</string>
+    <string name="tracking_notes_placeholder">How are you feeling today?</string>
+    <string name="tracking_mark_irregular">Mark as irregular</string>
+    <string name="tracking_irregular_desc">Exclude from predictions (illness, stress, etc.)</string>
+    <string name="tracking_reason">Reason</string>
+    <string name="tracking_save">Save Entry</string>
+    <string name="tracking_save_great_start">Save — Great start!</string>
+    <string name="tracking_save_nice_detail">Save — Nice detail!</string>
+    <string name="tracking_save_thorough">Save — Thorough check-in!</string>
+    <string name="tracking_save_amazing">Save — Amazing self-awareness!</string>
+    <string name="tracking_items_logged">%d items logged — every detail helps your predictions improve</string>
+
+    <!-- Cycle View -->
+    <string name="cycle_day_of">Day %1$d of %2$d</string>
+    <string name="cycle_next_period_in">Next period in ~%d days</string>
+    <string name="cycle_period_predicted_today">Period predicted today</string>
+    <string name="cycle_period_late">Period is %d days late</string>
+    <string name="cycle_confidence">Confidence: %d%%</string>
+    <string name="cycle_journey_starts">Your Journey Starts Here</string>
+    <string name="cycle_journey_body">Log your first period to unlock personalized predictions, body insights, and cycle superpowers.</string>
+    <string name="cycle_journey_cta">Tap + to get started — it takes 30 seconds</string>
+    <string name="cycle_daily_affirmation">Daily Affirmation</string>
+    <string name="cycle_your_body_right_now">Your Body Right Now</string>
+    <string name="cycle_next_period">Next Period</string>
+    <string name="cycle_ovulation">Ovulation</string>
+    <string name="cycle_fertile_window">Fertile Window</string>
+    <string name="cycle_estimated">Estimated</string>
+    <string name="cycle_passed">Passed</string>
+
+    <!-- Analysis -->
+    <string name="analysis_title">Analysis</string>
+    <string name="analysis_insights_building">Your Insights Are Building</string>
+    <string name="analysis_insights_body">Track your first complete cycle to unlock:\n\n• Average cycle and period length\n• Regularity scoring\n• Symptom pattern detection\n• Cycle-over-cycle trend analysis\n\nEach day you log brings you closer to understanding your body\u2019s unique rhythm.</string>
+    <string name="analysis_avg_cycle">Avg Cycle</string>
+    <string name="analysis_avg_period">Avg Period</string>
+    <string name="analysis_variability">Variability</string>
+    <string name="analysis_regularity">Regularity</string>
+    <string name="analysis_shortest">Shortest</string>
+    <string name="analysis_longest">Longest</string>
+    <string name="analysis_cycles_tracked">Cycles Tracked</string>
+    <string name="analysis_trend">Trend</string>
+    <string name="analysis_trend_lengthening">Lengthening</string>
+    <string name="analysis_trend_shortening">Shortening</string>
+    <string name="analysis_trend_stable">Stable</string>
+    <string name="analysis_cycle_length_history">Cycle Length History</string>
+    <string name="analysis_symptom_patterns">Symptom Patterns</string>
+    <string name="analysis_symptom_subtitle">Most frequent symptoms across %d tracked days</string>
+    <string name="analysis_cycle_summaries">Cycle Summaries</string>
+    <string name="analysis_cycle_summaries_subtitle">Recent cycle history with top symptoms</string>
+    <string name="analysis_length">Length</string>
+    <string name="analysis_period">Period</string>
+    <string name="analysis_top_symptoms">Top symptoms: %s</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_subtitle">The cycle tracker that\nactually respects you.</string>
+    <string name="onboarding_welcome_body">Most period apps sell your intimate health data to advertisers, insurers, and data brokers. CycleSync is different — your data never leaves your device. Ever.</string>
+    <string name="onboarding_welcome_trust">Trusted by women who refuse to\nbe the product.</string>
+    <string name="onboarding_privacy_title">Your Body, Your Data.</string>
+    <string name="onboarding_privacy_subtitle">No one should profit from your most personal health information.</string>
+    <string name="onboarding_personalize_title">Let\u2019s Personalize</string>
+    <string name="onboarding_personalize_subtitle">This helps our Bayesian prediction engine learn your unique pattern faster.</string>
+    <string name="onboarding_cycle_length">Typical cycle length: %d days</string>
+    <string name="onboarding_period_length">Typical period length: %d days</string>
+    <string name="onboarding_use_averages">Not sure? Use averages — it gets smarter over time</string>
+    <string name="onboarding_last_period_title">Last Period</string>
+    <string name="onboarding_last_period_question">When did your last period start?</string>
+    <string name="onboarding_skip">Skip - I\'ll log it later</string>
+    <string name="onboarding_goal_title">What\u2019s Your Goal?</string>
+    <string name="onboarding_goal_subtitle">CycleSync adapts to your life stage. Switch anytime.</string>
+    <string name="onboarding_complete_title">You\u2019re In Control.</string>
+    <string name="onboarding_complete_subtitle">Welcome to the only cycle tracker that puts you first.</string>
+    <string name="onboarding_what_next">What happens next:</string>
+    <string name="onboarding_encrypted_notice">Your data is encrypted and stored only on this device.\nNo one else can ever access it.</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Start My Journey</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Cycle Reminders</string>
+    <string name="notification_channel_desc">Reminders for your cycle events</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_calendar_period_day">%s, period day</string>
+    <string name="a11y_calendar_predicted_period">%s, predicted period</string>
+    <string name="a11y_calendar_fertile_day">%s, fertile day</string>
+    <string name="a11y_calendar_ovulation_day">%s, ovulation day</string>
+    <string name="a11y_calendar_pms_day">%s, PMS day</string>
+    <string name="a11y_calendar_today">%s, today</string>
+    <string name="a11y_cycle_ring">Cycle ring showing day %1$d of %2$d, currently in %3$s phase</string>
 </resources>
