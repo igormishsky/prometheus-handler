@@ -32,10 +32,6 @@ class SettingsRepositoryImpl @Inject constructor(
         settingsDao.insertOrReplace(settings.toEntity())
     }
 
-    override suspend fun updateSettings(settings: Settings) {
-        settingsDao.insertOrReplace(settings.toEntity())
-    }
-
     private fun SettingsEntity.toDomain(): Settings = Settings(
         id = id,
         activeMode = AppMode.fromNameOrNull(activeMode) ?: AppMode.PERIOD_TRACKING,

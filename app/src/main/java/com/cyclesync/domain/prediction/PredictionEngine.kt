@@ -79,7 +79,7 @@ class PredictionEngine {
         if (n >= MIN_CYCLES_FOR_TREND) {
             val recent = validCycles.takeLast(RECENT_CYCLE_COUNT).mapNotNull { it.cycleLength }
             if (recent.size >= MIN_RECENT_CYCLES_FOR_TREND) {
-                val slope = linearRegressionSlope(recent)
+                val slope = CycleCalculator.linearRegressionSlope(recent)
                 if (abs(slope) > TREND_THRESHOLD) {
                     predictedCycleLength += slope * TREND_ADJUSTMENT_FACTOR
                 }
@@ -189,17 +189,4 @@ class PredictionEngine {
         return (cycleConf - variancePenalty).coerceIn(MIN_CONFIDENCE, MAX_CONFIDENCE)
     }
 
-    private fun linearRegressionSlope(values: List<Int>): Double {
-        val n = values.size
-        if (n < 2) return 0.0
-        val xMean = (n - 1) / 2.0
-        val yMean = values.average()
-        var numerator = 0.0
-        var denominator = 0.0
-        for (i in values.indices) {
-            numerator += (i - xMean) * (values[i] - yMean)
-            denominator += (i - xMean) * (i - xMean)
-        }
-        return if (denominator > 0.0) numerator / denominator else 0.0
-    }
 }

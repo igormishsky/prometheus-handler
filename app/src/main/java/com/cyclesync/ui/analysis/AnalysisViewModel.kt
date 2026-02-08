@@ -121,7 +121,7 @@ class AnalysisViewModel @Inject constructor(
     private fun calculateTrend(cycleLengths: List<Int>): Trend {
         if (cycleLengths.size < 6) return Trend.STABLE
         val recent = cycleLengths.takeLast(6)
-        val slope = calculateSlope(recent)
+        val slope = CycleCalculator.linearRegressionSlope(recent)
         return when {
             slope > 0.3 -> Trend.LENGTHENING
             slope < -0.3 -> Trend.SHORTENING
@@ -188,17 +188,4 @@ class AnalysisViewModel @Inject constructor(
             }
     }
 
-    private fun calculateSlope(values: List<Int>): Double {
-        val n = values.size
-        if (n < 2) return 0.0
-        val xMean = (n - 1) / 2.0
-        val yMean = values.average()
-        var num = 0.0
-        var den = 0.0
-        for (i in values.indices) {
-            num += (i - xMean) * (values[i] - yMean)
-            den += (i - xMean) * (i - xMean)
-        }
-        return if (den != 0.0) num / den else 0.0
-    }
 }

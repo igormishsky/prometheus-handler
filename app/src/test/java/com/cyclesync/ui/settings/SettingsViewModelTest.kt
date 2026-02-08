@@ -1,9 +1,11 @@
 package com.cyclesync.ui.settings
 
+import com.cyclesync.core.notifications.ReminderManager
 import com.cyclesync.domain.entity.AppMode
 import com.cyclesync.domain.entity.NotificationPrivacy
 import com.cyclesync.domain.entity.Settings
 import com.cyclesync.domain.repository.CycleRepository
+import com.cyclesync.domain.repository.DailyLogRepository
 import com.cyclesync.domain.repository.PredictionRepository
 import com.cyclesync.domain.repository.SettingsRepository
 import io.mockk.*
@@ -33,6 +35,12 @@ class SettingsViewModelTest {
     @MockK
     private lateinit var predictionRepository: PredictionRepository
 
+    @MockK(relaxed = true)
+    private lateinit var dailyLogRepository: DailyLogRepository
+
+    @MockK(relaxed = true)
+    private lateinit var reminderManager: ReminderManager
+
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -52,7 +60,7 @@ class SettingsViewModelTest {
     fun `initial state is loading`() = runTest {
         coEvery { settingsRepository.getSettings() } returns flowOf(null)
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         assertTrue(viewModel.state.value.isLoading)
     }
 
@@ -69,7 +77,7 @@ class SettingsViewModelTest {
         )
         coEvery { settingsRepository.getSettings() } returns flowOf(settings)
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         val state = viewModel.state.value
@@ -86,7 +94,7 @@ class SettingsViewModelTest {
         val settings = Settings() // all defaults
         coEvery { settingsRepository.getSettings() } returns flowOf(settings)
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         val state = viewModel.state.value
@@ -101,7 +109,7 @@ class SettingsViewModelTest {
     fun `null settings keeps loading state properties`() = runTest {
         coEvery { settingsRepository.getSettings() } returns flowOf(null)
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         // When settings is null, the collect block doesn't update state, so it stays at initial values
@@ -115,16 +123,16 @@ class SettingsViewModelTest {
     fun `cycleMode advances to next mode`() = runTest {
         val settings = Settings(activeMode = AppMode.PERIOD_TRACKING)
         coEvery { settingsRepository.getSettings() } returns flowOf(settings)
-        coEvery { settingsRepository.updateSettings(any()) } just Runs
+        coEvery { settingsRepository.saveSettings(any()) } just Runs
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         viewModel.cycleMode()
         advanceUntilIdle()
 
         coVerify {
-            settingsRepository.updateSettings(match {
+            settingsRepository.saveSettings(match {
                 it.activeMode == AppMode.CONCEIVE
             })
         }
@@ -134,16 +142,16 @@ class SettingsViewModelTest {
     fun `cycleMode wraps around from last mode to first`() = runTest {
         val settings = Settings(activeMode = AppMode.PERIMENOPAUSE)
         coEvery { settingsRepository.getSettings() } returns flowOf(settings)
-        coEvery { settingsRepository.updateSettings(any()) } just Runs
+        coEvery { settingsRepository.saveSettings(any()) } just Runs
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         viewModel.cycleMode()
         advanceUntilIdle()
 
         coVerify {
-            settingsRepository.updateSettings(match {
+            settingsRepository.saveSettings(match {
                 it.activeMode == AppMode.PERIOD_TRACKING
             })
         }
@@ -153,13 +161,13 @@ class SettingsViewModelTest {
     fun `cycleMode does nothing when settings not loaded`() = runTest {
         coEvery { settingsRepository.getSettings() } returns flowOf(null)
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         viewModel.cycleMode()
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { settingsRepository.updateSettings(any()) }
+        coVerify(exactly = 0) { settingsRepository.saveSettings(any()) }
     }
 
     // --- deleteAllData ---
@@ -170,7 +178,7 @@ class SettingsViewModelTest {
         coEvery { cycleRepository.deleteAllCycles() } just Runs
         coEvery { predictionRepository.deleteAll() } just Runs
 
-        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, predictionRepository)
+        val viewModel = SettingsViewModel(settingsRepository, cycleRepository, dailyLogRepository, predictionRepository, reminderManager)
         advanceUntilIdle()
 
         viewModel.deleteAllData()

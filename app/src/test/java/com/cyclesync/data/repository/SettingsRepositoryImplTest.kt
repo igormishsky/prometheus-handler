@@ -158,13 +158,6 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
-    fun `updateSettings delegates to dao`() = runTest {
-        val settings = Settings(activeMode = AppMode.PERIMENOPAUSE)
-        repository.updateSettings(settings)
-        coVerify { settingsDao.insertOrReplace(any()) }
-    }
-
-    @Test
     fun `all AppMode values map correctly`() = runTest {
         for (mode in AppMode.entries) {
             val entity = SettingsEntity(activeMode = mode.name.lowercase())
